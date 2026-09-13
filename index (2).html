@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>جواز تجربة العميل — GADD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Tajawal:wght@400;500;700&display=swap');
+
+  :root{
+    --bg-0:#081e18;
+    --bg-1:#0c2c23;
+    --panel:#0f3a2e;
+    --panel-2:#123f33;
+    --line: rgba(220,255,240,0.10);
+    --accent:#2fe08c;
+    --accent-dim: rgba(47,224,140,0.18);
+    --gold:#e8b84b;
+    --warn:#ff6f5c;
+    --text:#eaf7f0;
+    --text-dim:#8fb8a8;
+    --radius-lg: 26px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; }
+  body{
+    background: radial-gradient(120% 90% at 50% -10%, #103b2f 0%, var(--bg-0) 60%);
+    color: var(--text);
+    font-family:'Tajawal', 'Segoe UI', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding-block: 28px;
+    padding-inline: 16px;
+  }
+
+  h1,h2,h3,.display{ font-family:'Cairo','Tajawal',sans-serif; text-wrap: balance; }
+
+  button{ font-family: inherit; cursor:pointer; }
+
+  /* ---------- background texture: faint circuit dots ---------- */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(rgba(47,224,140,0.10) 1px, transparent 1.4px);
+    background-size: 26px 26px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  #phone{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:430px;
+    min-height:780px;
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    border:1px solid var(--line);
+    border-radius: 34px;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- passport strip ---------- */
+  #strip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding: 14px 18px 10px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  #strip .stamps{ display:flex; gap:6px; }
+  #strip .dot{
+    width:15px;height:15px;border-radius:50%;
+    border:1.6px solid var(--text-dim);
+    display:flex; align-items:center; justify-content:center;
+    transition: all .3s ease;
+  }
+  #strip .dot.on{
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(232,184,75,0.7);
+  }
+  #strip .count{ font-family:'Cairo'; font-weight:800; font-size:13px; color:var(--text-dim); letter-spacing:.5px; }
+  .coin-pill{
+    display:flex; align-items:center; gap:4px;
+    font-family:'Cairo'; font-weight:800; font-size:12.5px; color:var(--gold);
+    background: rgba(232,184,75,0.12); border:1px solid rgba(232,184,75,0.35);
+    border-radius:999px; padding:4px 10px; flex-shrink:0;
+    transition: transform .25s ease;
+  }
+  .coin-pill.bump{ animation: coinbump .4s ease; }
+  @keyframes coinbump{ 0%{transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+  #screen{
+    flex:1;
+    padding: 22px 22px 26px;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    overflow-y:auto;
+  }
+
+  .eyebrow{
+    font-family:'Cairo'; font-weight:800; font-size:12px;
+    letter-spacing:1.5px; color:var(--accent); text-transform:uppercase;
+    margin:0 0 8px;
+  }
+  .title-xl{ font-size: 27px; font-weight:900; margin:0 0 10px; line-height:1.35; }
+  .title-md{ font-size:20px; font-weight:800; margin:0 0 10px; }
+  p{ line-height:1.85; color:var(--text-dim); margin:0 0 14px; font-size:15px; }
+  strong.hl{ color:var(--text); }
+
+  .btn{
+    border:none; border-radius: 999px;
+    padding: 15px 22px;
+    font-weight:800; font-family:'Cairo';
+    font-size:15px;
+    background: var(--accent);
+    color:#062117;
+    box-shadow: 0 8px 24px -8px rgba(47,224,140,0.55);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:active{ transform: scale(.97); }
+  .btn.secondary{
+    background: transparent;
+    color: var(--text);
+    border: 1.5px solid var(--line);
+    box-shadow:none;
+  }
+  .btn.block{ width:100%; }
+  .btn:disabled{ opacity:.4; pointer-events:none; }
+
+  .spacer{ flex:1; }
+
+  /* ---------- intro ---------- */
+  .intro-badge{
+    width:84px; height:84px; border-radius: 22px;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:38px; margin-bottom:22px;
+    box-shadow: 0 0 0 6px rgba(47,224,140,0.06);
+  }
+
+  /* ---------- story beats ---------- */
+  #story-wrap{ display:flex; flex-direction:column; height:100%; }
+  .beat-fill{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
+  .avatar{
+    width:64px; height:64px; margin-bottom:16px;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,.4));
+  }
+  .quote-bubble{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 6px;
+    padding:18px 20px;
+    font-family:'Cairo';
+    font-weight:700;
+    font-size:17px;
+    line-height:1.7;
+    color: var(--text);
+    transition: border-color .4s ease, background .4s ease;
+  }
+  .tapzone{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:18px;
+  }
+  .beatbar{ display:flex; gap:5px; margin-bottom:14px; }
+  .beatbar span{ flex:1; height:3px; border-radius:3px; background: var(--line); overflow:hidden; }
+  .beatbar span i{ display:block; height:100%; width:0%; background:var(--accent); transition: width .25s; }
+  .beatbar span.done i{ width:100%; }
+
+  /* ---------- hub orbit ---------- */
+  #orbit-wrap{ position:relative; flex:1; display:flex; align-items:center; justify-content:center; min-height:340px; }
+  #orbit{ position:relative; width:290px; height:290px; }
+  .center-emblem{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:104px; height:104px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--panel-2), var(--bg-0));
+    border:2px solid var(--accent-dim);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow: 0 0 0 10px rgba(47,224,140,0.05), 0 0 30px rgba(47,224,140,0.15);
+  }
+  .center-emblem .n{ font-family:'Cairo'; font-weight:900; font-size:22px; }
+  .center-emblem .lbl{ font-size:10px; color:var(--text-dim); margin-top:2px; }
+  .orbit-ring{
+    position:absolute; inset:0; border-radius:50%;
+    border: 1.5px dashed var(--line);
+  }
+  .station{
+    position:absolute; top:50%; left:50%;
+    width:76px; height:76px; margin:-38px;
+    transform-origin:center;
+  }
+  .station button{
+    width:100%; height:100%; border-radius:20px;
+    background: var(--panel);
+    border:1.5px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px;
+    font-size:22px;
+    transition: transform .15s ease, border-color .2s;
+  }
+  .station button:active{ transform:scale(.94); }
+  .station.done button{ border-color: var(--gold); box-shadow:0 0 16px rgba(232,184,75,.35); }
+  .station .lbl{ font-size:10.5px; font-family:'Tajawal'; font-weight:700; color:var(--text); }
+  .station .check{ position:absolute; top:-4px; left:-4px; background:var(--gold); color:#3a2a04; width:20px;height:20px;border-radius:50%; font-size:12px; display:flex; align-items:center; justify-content:center; font-weight:900; }
+
+  /* ---------- game chrome ---------- */
+  .game-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .backbtn{
+    width:34px;height:34px;border-radius:50%;
+    background: var(--panel); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text); font-size:16px; flex-shrink:0;
+  }
+  .game-tag{ font-family:'Cairo'; font-weight:800; font-size:15px; }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding:16px 18px;
+  }
+
+  .choice-list{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .choice{
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    padding:14px 16px;
+    text-align:right;
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--text);
+  }
+  .choice:active{ transform: scale(.98); }
+  .choice.correct{ border-color:var(--accent); background: var(--accent-dim); }
+  .choice.wrong{ border-color:var(--warn); background: rgba(255,111,92,0.14); }
+
+  .toast{
+    position:absolute; left:22px; right:22px; bottom:22px;
+    background:#1a1613; border:1px solid rgba(255,111,92,.5);
+    color:#ffd9d2; padding:12px 16px; border-radius:14px;
+    font-size:13.5px; font-weight:700; text-align:center;
+    animation: toastin .25s ease;
+  }
+  @keyframes toastin{ from{ opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .lives{ display:flex; gap:5px; margin-inline-start:auto; }
+  .lives i{ width:9px;height:9px;border-radius:50%; background:var(--warn); }
+  .lives i.lost{ background: var(--line); }
+
+  .steps-shuffled{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .steps-shuffled .chip{
+    background:var(--panel-2); border:1.5px solid var(--line);
+    padding:10px 14px; border-radius:12px; font-size:13.5px; font-weight:700;
+  }
+  .steps-shuffled .chip.used{ opacity:.25; pointer-events:none; }
+  .slots{ display:flex; flex-direction:column; gap:8px; margin:14px 0; }
+  .slot{
+    min-height:44px; border-radius:12px; border:1.5px dashed var(--line);
+    display:flex; align-items:center; padding:0 14px; font-size:13.5px; font-weight:700;
+    color:var(--text-dim);
+  }
+  .slot.filled{ border-style:solid; border-color:var(--accent); color:var(--text); background:var(--accent-dim); }
+
+  .qchip{ display:inline-block; background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:12.5px; font-weight:700; margin:4px 4px 0 0; color:var(--text); }
+
+  .tracker-wrap{ display:flex; align-items:flex-start; margin:18px 0 6px; }
+  .tracker-step{ flex:1; display:flex; flex-direction:column; align-items:center; position:relative; text-align:center; }
+  .tracker-step:not(:last-child)::after{ content:""; position:absolute; top:12px; left:50%; width:100%; height:2px; background:var(--line); z-index:0; }
+  .tracker-step.done:not(:last-child)::after{ background:var(--accent); }
+  .tracker-dot{ width:26px;height:26px;border-radius:50%; background:var(--panel-2); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:13px; z-index:1; position:relative; font-weight:900; }
+  .tracker-step.done .tracker-dot{ background:var(--accent); border-color:var(--accent); color:#062117; }
+  .tracker-step.current .tracker-dot{ border-color:var(--gold); box-shadow:0 0 0 4px rgba(232,184,75,.25); color:var(--gold); }
+  .tracker-lbl{ font-size:10.5px; margin-top:7px; color:var(--text-dim); font-weight:700; line-height:1.4; white-space:pre-line; }
+  .tracker-step.done .tracker-lbl, .tracker-step.current .tracker-lbl{ color:var(--text); }
+  .tracker-meta{ display:flex; justify-content:space-between; gap:10px; margin-top:16px; }
+  .tracker-meta div{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; flex:1; }
+  .tracker-meta span{ font-size:11px; color:var(--text-dim); display:block; margin-bottom:3px; }
+  .tracker-meta strong{ color:var(--accent); font-size:13px; }
+  .answered-q{ display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-top:8px; font-size:13px; font-weight:700; }
+  .answered-q b{ color:var(--accent); font-family:'Cairo'; }
+  .timer{ font-family:'Cairo'; font-weight:900; font-size:22px; color:var(--gold); }
+
+  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin-top:6px; }
+  #wheel-svg{ width:230px; height:230px; transition: transform 3.2s cubic-bezier(.17,.67,.2,1); }
+  .pointer{ font-size:26px; margin-bottom:-8px; }
+
+  .swipe-card{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius: var(--radius-lg); padding:20px; margin-top:10px;
+  }
+  .swipe-row{ display:flex; gap:10px; margin-top:14px; }
+  .swipe-row button{ flex:1; border-radius:14px; padding:13px; font-weight:800; font-family:'Cairo'; font-size:14px; border:1.5px solid var(--line); background:var(--panel-2); color:var(--text); }
+  .swipe-row button.match{ border-color:var(--accent); }
+  .swipe-row button.nomatch{ border-color:var(--warn); }
+  .score-pill{ font-family:'Cairo'; font-weight:800; font-size:12.5px; color:var(--text-dim); }
+
+  .result-badge{
+    width:96px; height:96px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--panel-2), var(--bg-0));
+    border:2.5px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size:44px; margin: 6px auto 18px;
+    box-shadow: 0 0 40px rgba(232,184,75,.35);
+    animation: pop .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{ 0%{ transform:scale(.3) rotate(-25deg); opacity:0;} 100%{transform:scale(1) rotate(0); opacity:1;} }
+
+  .center-text{ text-align:center; }
+
+  .badge-medal{
+    width:118px; height:118px; margin:6px auto 4px; border-radius:50%;
+    background: radial-gradient(circle at 35% 28%, #fff6d8, var(--gold) 58%, #9c721b 100%);
+    border:3px solid #fff3cf;
+    display:flex; align-items:center; justify-content:center;
+    font-size:52px;
+    box-shadow: 0 0 0 8px rgba(232,184,75,0.12), 0 14px 30px -6px rgba(0,0,0,0.5);
+    animation: pop .6s cubic-bezier(.2,1.4,.4,1);
+  }
+  .badge-name{ font-family:'Cairo'; font-weight:900; font-size:16px; text-align:center; margin:12px 0 2px; }
+  .coin-total{ font-family:'Cairo'; font-weight:800; font-size:14px; color:var(--gold); text-align:center; margin-bottom:16px; }
+
+  input[type=text]{
+    width:100%; background:var(--panel-2); border:1.5px solid var(--line);
+    border-radius:12px; padding:13px 16px; color:var(--text); font-family:'Tajawal';
+    font-size:14.5px; margin-bottom:12px;
+  }
+  input[type=text]::placeholder{ color:var(--text-dim); }
+
+  #certificate{ width:100%; border-radius:16px; display:block; margin-top:14px; }
+
+  ::-webkit-scrollbar{ width:0; }
+</style>
+</head>
+<body>
+
+<div id="phone">
+  <div id="strip" hidden>
+    <div class="count" id="strip-count">0 / 7</div>
+    <div class="stamps" id="strip-dots"></div>
+    <div class="coin-pill" id="strip-coins">🪙 0</div>
+  </div>
+  <div id="screen"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GAMES = [
+    { id:"maze",    icon:"🧭", label:"وين أدخل أتابع؟" },
+    { id:"expect",  icon:"📦", label:"توقع أم واقع؟" },
+    { id:"redtape", icon:"📋", label:"ترتيب رحلة الطلب" },
+    { id:"wheel",   icon:"🎡", label:"عجلة مصطلحات نورة" },
+    { id:"journey", icon:"🚶", label:"عيشي قلق نورة" },
+    { id:"insight", icon:"💡", label:"لحظة الحل" },
+    { id:"noura",   icon:"🔍", label:"قضية د. نورة" }
+  ];
+
+  var NOURA_CASE = {
+    name:"د. نورة", role:"باحثة جامعية",
+    problem:"أثناء انتظار القرار، ما تعرفش د. نورة طلبها وصل فين، ولا مين اللي بيراجعه، ولا امتى ممكن يصدر القرار.",
+    questions:["أين وصل طلبي؟","من يراجعه؟","متى يصدر القرار؟"],
+    stages:[
+      { label:"تم الاستلام", sub:"12 مايو 2026", state:"done" },
+      { label:"قيد المراجعة", sub:"حاليًا", state:"current" },
+      { label:"تحت التقييم", sub:"", state:"pending" },
+      { label:"القرار", sub:"", state:"pending" }
+    ],
+    owner:"اللجنة العلمية",
+    eta:"خلال 2-4 أسابيع",
+    quiz:[
+      { q:"أين وصل طلب د. نورة الآن؟", options:["قيد المراجعة","تم الرفض نهائيًا","لم يُستلم بعد"], correct:0 },
+      { q:"مين الجهة المسؤولة عن مراجعته حاليًا؟", options:["قسم تقنية المعلومات","اللجنة العلمية","الشؤون المالية"], correct:1 },
+      { q:"متى يُتوقع صدور القرار؟", options:["خلال 24 ساعة","غير معروف نهائيًا","خلال 2-4 أسابيع"], correct:2 }
+    ]
+  };
+
+  var STORY_BEATS = [
+    { mood:"hot",  text:"أنا د. نورة، باحثة جامعية.\nقدّمت طلب دعم لمشروعي البحثي... ولسه مستنية القرار." },
+    { mood:"hot",  text:"كل ما أدخل أتابع، بلاقي نفس السؤال يرجع لي:\nطلبي وصل فين؟" },
+    { mood:"hot",  text:"محدش قادر يقولي مين اللي بيراجعه دلوقتي، ولا امتى المفروض يصدر القرار." },
+    { mood:"warm", text:"بس تعرفوا إيش اللي مضايقني فعلًا؟\nمو إن القرار اتأخر... المشكلة إني مش عارفة قاعد يحصل إيه." },
+    { mood:"warm", text:"أنا ما أبي أرى الإجراءات الداخلية أو الأقسام.\nأنا أرى تجربة واحدة واضحة لطلبي." },
+    { mood:"cool", text:"هل المشكلة في القرار نفسه... أم في وضوح المتابعة؟" },
+    { mood:"cool", text:"جرّبوا تعيشوا قضيتي خطوة بخطوة عبر 7 محطات،\nوساعدوني أوصل لإجابات أسئلتي الثلاثة 👇" }
+  ];
+
+  // Every station below is one facet of Dr. Noura's single case: not knowing
+  // her request's status, reviewer, or decision timing. Each is a one-shot
+  // quiz (see playQuiz): wrong or incomplete → no stamp, no retry.
+
+  var QUIZ_MAZE = [
+    { q:"نورة عايزة تعرف حالة طلبها لأول مرة، تدخل فين؟",
+      options:["تبعت رسالة على السوشيال ميديا","تتصل بمركز الاتصال العام","تفتح تتبّع الطلب في البوابة الرقمية"], correct:2 },
+    { q:"البوابة موضّح فيها «قيد المراجعة» مع اسم الجهة المسؤولة، تعمل إيه بعد كده؟",
+      options:["تتأكد من التوقيت المتوقع الظاهر في نفس الشاشة","تتجاهل التفاصيل وتقفل الصفحة","تدوّر على رقم عشوائي"], correct:0 },
+    { q:"عايزة تعرف امتى المفروض يصدر القرار، أدق مصدر إيه؟",
+      options:["تخمين شخصي","التوقيت المتوقع الظاهر في شاشة تتبع الطلب","سؤال زميلة في قسم تاني"], correct:1 },
+    { q:"لو حسّت إن فيه تأخير عدّى التوقيت المعلن؟",
+      options:["تتجاهل الموضوع","تقدّم طلب جديد من الأول","تتواصل مباشرة مع الجهة المسؤولة المذكورة وتستفسر"], correct:2 }
+  ];
+
+  var QUIZ_EXPECT = [
+    { q:"توقعت نورة ردًا خلال أسبوع من تقديم الطلب، لكن الواقع إن الرد اتأخر لشهر كامل من غير أي تحديث. هل الواقع طابق توقعها؟",
+      options:["أيوه طابق","لأ ما طابقش"], correct:1 },
+    { q:"توقعت إنها تلاقي اسم الجهة المسؤولة موضّح في مكان واحد، ولقت فعلاً اسم اللجنة العلمية واضح في شاشة تتبع الطلب. هل طابق توقعها؟",
+      options:["أيوه طابق","لأ ما طابقش"], correct:0 },
+    { q:"توقعت إن مركز الاتصال العام هيديها تفاصيل دقيقة عن طلبها، لكنهم حوّلوها لجهة تانية من غير إجابة واضحة. هل طابق توقعها؟",
+      options:["أيوه طابق","لأ ما طابقش"], correct:1 },
+    { q:"توقعت إن شاشة تتبع الطلب هتوريها توقيت تقديري للقرار، ولقت فعلاً «خلال 2-4 أسابيع» موضّحة. هل طابق توقعها؟",
+      options:["أيوه طابق","لأ ما طابقش"], correct:0 }
+  ];
+
+  var QUIZ_REDTAPE = [
+    { q:"بعد ما نورة تقدّم طلبها، إيه أول حالة تظهر في تتبع الطلب؟",
+      options:["القرار","تم الاستلام","تحت التقييم"], correct:1 },
+    { q:"بعد «تم الاستلام»، الحالة اللي بعدها إيه؟",
+      options:["قيد المراجعة","القرار","لم يُستلم"], correct:0 },
+    { q:"بعد «قيد المراجعة»، الخطوة اللي بعدها؟",
+      options:["تم الاستلام","تحت التقييم","القرار"], correct:1 },
+    { q:"آخر حالة في رحلة طلب نورة هي إيه؟",
+      options:["القرار","قيد المراجعة","تم الاستلام"], correct:0 }
+  ];
+
+  var WHEEL_TERMS = [
+    { term:"شفافية المتابعة", correct:"إظهار حالة الطلب والجهة المسؤولة والتوقيت المتوقع للمستفيد بوضوح.",
+      distract:["إخفاء تفاصيل الطلب لتفادي الأسئلة.","إرسال نفس الرد الجاهز لكل الاستفسارات."] },
+    { term:"الجهة المسؤولة", correct:"الجهة الحالية المكلّفة بمراجعة الطلب في هذه اللحظة.",
+      distract:["أي موظف يرد على الهاتف.","اسم النظام الإلكتروني المستخدم."] },
+    { term:"التوقيت المتوقع", correct:"تقدير واضح للمدة الزمنية حتى صدور القرار.",
+      distract:["تاريخ تقديم الطلب فقط.","موعد إجازة الموظف المسؤول."] },
+    { term:"حالة الطلب", correct:"المرحلة الحالية للطلب ضمن رحلته الكاملة حتى القرار.",
+      distract:["رقم الطلب المرجعي فقط.","اسم مقدّمة الطلب."] },
+    { term:"ثقة أعلى", correct:"أثر مباشر لوضوح المتابعة على شعور المستفيد بالثقة في الجهة.",
+      distract:["مكافأة مادية تُمنح للمستفيد.","خصم إضافي على الخدمة."] },
+    { term:"متابعة أسهل", correct:"قدرة المستفيد على معرفة حالة طلبه دون تكرار الاتصال والاستفسار.",
+      distract:["إلغاء إمكانية الاستفسار نهائيًا.","تحويل المتابعة لجهة خارجية."] }
+  ];
+
+  var QUIZ_JOURNEY = [
+    { q:"أول حاجة عملتها نورة لما حسّت بالقلق من عدم المعرفة؟",
+      options:["فتحت شاشة تتبع الطلب في البوابة","سابت الموضوع تمامًا","قدّمت طلب شكوى فورًا"], correct:0 },
+    { q:"لما لقت حالتها «قيد المراجعة»، إيه الخطوة الصح التالية؟",
+      options:["تتجاهل وتفترض الرفض","تتأكد من الجهة المسؤولة والتوقيت المتوقع الظاهرين","تلغي الطلب"], correct:1 },
+    { q:"في الآخر، إيه اللي خلّى نورة تحس بثقة أكبر رغم إن القرار لسه ما صدرش؟",
+      options:["وضوح حالة الطلب والتوقيت المتوقع","وعد شفهي غير موثق","عدم وجود أي معلومة"], correct:0 }
+  ];
+
+  var INSIGHT = {
+    term:"شفافية المتابعة",
+    text:"واجهة متابعة واضحة تعرض مراحل الطلب، الجهة المسؤولة، والتوقيت المتوقع، مع إشعارات فورية بأي تحديث — هي الحل المقترح لمشكلة نورة، وأثرها المباشر: شفافية أكبر، متابعة أسهل، وثقة أعلى بالجهة.",
+    q:"إيه الأثر المباشر لوضوح متابعة حالة الطلب؟",
+    options:[
+      "شفافية أكبر ومتابعة أسهل وثقة أعلى",
+      "تعقيد أكبر في الإجراءات",
+      "تقليل عدد الموظفين"
+    ],
+    correctIndex:0
+  };
+
+  // ---------- state ----------
+  var S = load() || { stamps:{}, name:"", screen:"intro" };
+  function load(){ try{ return JSON.parse(localStorage.getItem("cxpp_state")||"null"); }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem("cxpp_state", JSON.stringify(S)); }catch(e){} }
+
+  var G = {}; // transient per-game runtime state
+
+  // ---------- leaderboard (Airtable via Cloudflare Worker) ----------
+  var LEADERBOARD_API = "https://gadd-cx-leaderboard.innovationraces.workers.dev";
+  function getSessionId(){
+    try{
+      var id = localStorage.getItem("cxpp_session");
+      if(!id){
+        id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("s" + Date.now() + Math.random().toString(16).slice(2));
+        localStorage.setItem("cxpp_session", id);
+      }
+      return id;
+    }catch(e){ return "s" + Date.now(); }
+  }
+  function submitToLeaderboard(name, coins){
+    if(S.leaderboardSubmitted) return;
+    fetch(LEADERBOARD_API + "/submit", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ name: name, coins: coins, sessionId: getSessionId() })
+    }).then(function(){ S.leaderboardSubmitted = true; save(); }).catch(function(){});
+  }
+
+  function stampCount(){ return GAMES.filter(function(g){ return S.stamps[g.id]; }).length; }
+  function allDone(){ return stampCount() === GAMES.length; }
+
+  function go(screen, extra){
+    S.screen = screen;
+    if(extra) Object.assign(S, extra);
+    save();
+    render();
+  }
+
+  var COINS_PER_STAMP = 20;
+
+  function awardStamp(id){
+    if(S.stamps[id]) return; // already earned — no double coins
+    S.stamps[id] = true;
+    S.coins = (S.coins || 0) + COINS_PER_STAMP;
+    save();
+  }
+
+  // ---------- render root ----------
+  function render(){
+    renderStrip();
+    var el = document.getElementById("screen");
+    el.innerHTML = "";
+    var view = VIEWS[S.screen] || VIEWS.intro;
+    view(el);
+    el.scrollTop = 0;
+  }
+
+  function renderStrip(){
+    var strip = document.getElementById("strip");
+    var showStrip = !(S.screen === "intro" || S.screen === "story");
+    strip.hidden = !showStrip;
+    if(!showStrip) return;
+    document.getElementById("strip-count").textContent = stampCount() + " / " + GAMES.length;
+    var dots = document.getElementById("strip-dots");
+    dots.innerHTML = "";
+    GAMES.forEach(function(g){
+      var d = document.createElement("div");
+      d.className = "dot" + (S.stamps[g.id] ? " on" : "");
+      dots.appendChild(d);
+    });
+    var coinEl = document.getElementById("strip-coins");
+    var coins = S.coins || 0;
+    if(coinEl.dataset.prev !== undefined && Number(coinEl.dataset.prev) < coins){
+      coinEl.classList.remove("bump"); void coinEl.offsetWidth; coinEl.classList.add("bump");
+    }
+    coinEl.dataset.prev = coins;
+    coinEl.textContent = "🪙 " + coins;
+  }
+
+  function h(tag, attrs, children){
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function(k){
+      if(k === "class") e.className = attrs[k];
+      else if(k === "html") e.innerHTML = attrs[k];
+      else if(k === "text") e.textContent = attrs[k];
+      else if(k.indexOf("on") === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ if(c) e.appendChild(c); });
+    return e;
+  }
+
+  // ================= VIEWS =================
+  var VIEWS = {};
+
+  VIEWS.intro = function(el){
+    el.appendChild(h("div", {class:"spacer"}));
+    el.appendChild(h("div", {class:"intro-badge", text:"🛂"}));
+    el.appendChild(h("p", {class:"eyebrow", text:"اليوم العالمي لتجربة العميل · GADD"}));
+    el.appendChild(h("h1", {class:"title-xl", text:"جواز تجربة العميل الرقمي"}));
+    el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيشي مشكلتها بنفسك عبر <strong class='hl'>7 محطات</strong>، واجمعي كل الأختام والعملات لتدخلي قرعة الجوائز."}));
+    var nameWrap = h("div", {});
+    var input = h("input", {type:"text", id:"nameInput", placeholder:"اكتب اسمك (اختياري الآن)"});
+    input.value = S.name || "";
+    nameWrap.appendChild(input);
+    el.appendChild(nameWrap);
+    el.appendChild(h("button", {class:"btn block", text:"ابدأ رحلتك", onclick:function(){
+      S.name = input.value.trim();
+      save();
+      go("story");
+    }}));
+    el.appendChild(h("div", {class:"spacer"}));
+  };
+
+  VIEWS.story = function(el){
+    var idx = G.beat || 0;
+    var beat = STORY_BEATS[idx];
+    var moodColor = { hot:"rgba(255,111,92,0.55)", warm:"rgba(232,184,75,0.55)", cool:"rgba(47,224,140,0.55)" }[beat.mood];
+
+    var wrap = h("div", {id:"story-wrap"});
+    var bar = h("div", {class:"beatbar"});
+    STORY_BEATS.forEach(function(_, i){
+      var seg = h("span", {class: i < idx ? "done" : ""});
+      seg.appendChild(h("i", {style: i === idx ? "width:100%" : ""}));
+      bar.appendChild(seg);
+    });
+    wrap.appendChild(bar);
+
+    var fill = h("div", {class:"beat-fill"});
+    fill.appendChild(avatarNouraSvg());
+    var bubble = h("div", {class:"quote-bubble"});
+    bubble.style.borderColor = moodColor;
+    beat.text.split("\n").forEach(function(line){ bubble.appendChild(h("div", {text:line})); });
+    fill.appendChild(bubble);
+
+    var tap = h("div", {class:"tapzone"});
+    tap.appendChild(h("button", {class:"btn secondary", text:"تخطي", onclick:function(){ G.beat=0; go("hub"); }}));
+    tap.appendChild(h("button", {class:"btn", text: idx === STORY_BEATS.length-1 ? "ابدأ اللعب" : "التالي", onclick:function(){
+      if(idx === STORY_BEATS.length - 1){ G.beat = 0; go("hub"); }
+      else { G.beat = idx + 1; render(); }
+    }}));
+    fill.appendChild(tap);
+    wrap.appendChild(fill);
+    el.appendChild(wrap);
+  };
+
+  function avatarSvg(){
+    var wrap = document.createElement("div");
+    wrap.innerHTML = '<svg class="avatar" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+      '<circle cx="32" cy="32" r="31" fill="#123f33" stroke="rgba(220,255,240,0.15)"/>'+
+      '<path d="M14 46c2-10 8-14 18-14s16 4 18 14" stroke="#2fe08c" stroke-width="2.4" stroke-linecap="round"/>'+
+      '<circle cx="32" cy="24" r="9" fill="#eaf7f0" opacity="0.92"/>'+
+      '<path d="M20 22c4-7 20-7 24 0-2 8-22 8-24 0Z" fill="#e8b84b" opacity="0.9"/>'+
+      '</svg>';
+    return wrap.firstChild;
+  }
+
+  function avatarNouraSvg(){
+    var wrap = document.createElement("div");
+    wrap.innerHTML = '<svg class="avatar" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+      '<circle cx="32" cy="32" r="31" fill="#123f33" stroke="rgba(220,255,240,0.15)"/>'+
+      '<path d="M13 48c2-9 8-13 19-13s17 4 19 13" stroke="#e8b84b" stroke-width="2.4" stroke-linecap="round"/>'+
+      '<circle cx="32" cy="25" r="8.5" fill="#eaf7f0" opacity="0.92"/>'+
+      '<path d="M18 27c-1-12 6-20 14-20s15 8 14 20c-2-3-4-5-6-6 .6-4-2-9-8-9s-8.6 5-8 9c-2 1-4 3-6 6Z" fill="#e8b84b"/>'+
+      '<path d="M20 30c3 4 18 4 21 0" stroke="#e8b84b" stroke-width="2" stroke-linecap="round" fill="none" opacity=".55"/>'+
+      '</svg>';
+    return wrap.firstChild;
+  }
+
+  VIEWS.hub = function(el){
+    if(allDone()){
+      el.appendChild(h("div", {class:"spacer"}));
+      el.appendChild(h("div", {class:"badge-medal", text:"🏅"}));
+      el.appendChild(h("div", {class:"badge-name", text:"بادج: مستكشفة تجربة العميل"}));
+      el.appendChild(h("div", {class:"coin-total", text:"🪙 إجمالي عملاتك: " + (S.coins||0)}));
+      el.appendChild(h("h2", {class:"title-md center-text", text:"اكتملت رحلتك!"}));
+      el.appendChild(h("p", {class:"center-text", text:"جمعت الأختام السبعة كلها وفزتِ بالبادج. جاهزة تدخلي قرعة الجوائز؟"}));
+      el.appendChild(h("button", {class:"btn block", text:"إنهاء الرحلة والتسجيل", onclick:function(){ go("finish"); }}));
+      el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+      el.appendChild(h("div", {class:"spacer"}));
+      return;
+    }
+
+    el.appendChild(h("p", {class:"eyebrow", text: S.name ? ("أهلًا " + S.name) : "رحلتك"}));
+    el.appendChild(h("h2", {class:"title-md", text:"اختاري محطة وابدئي"}));
+
+    var orbitWrap = h("div", {id:"orbit-wrap"});
+    var orbit = h("div", {id:"orbit"});
+    orbit.appendChild(h("div", {class:"orbit-ring"}));
+    var center = h("div", {class:"center-emblem"});
+    center.appendChild(h("div", {class:"n", text: stampCount()+"/"+GAMES.length}));
+    center.appendChild(h("div", {class:"lbl", text:"أختام"}));
+    orbit.appendChild(center);
+
+    var R = 118;
+    GAMES.forEach(function(g, i){
+      var angle = (360 / GAMES.length) * i - 90;
+      var rad = angle * Math.PI/180;
+      var st = h("div", {class:"station" + (S.stamps[g.id] ? " done" : "")});
+      st.style.transform = "translate(" + (Math.cos(rad)*R) + "px," + (Math.sin(rad)*R) + "px)";
+      var btn = h("button", {onclick:(function(id){ return function(){ openGame(id); }; })(g.id)});
+      btn.appendChild(h("div", {text:g.icon}));
+      btn.appendChild(h("div", {class:"lbl", text:g.label}));
+      st.appendChild(btn);
+      if(S.stamps[g.id]) st.appendChild(h("div", {class:"check", text:"✓"}));
+      orbit.appendChild(st);
+    });
+    orbitWrap.appendChild(orbit);
+    el.appendChild(orbitWrap);
+    el.appendChild(h("p", {class:"center-text", text:"أكملي كل المحطات لتجمعي الجواز كاملًا وتدخلي السحب على الجوائز."}));
+    el.appendChild(h("button", {class:"btn secondary block", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+  };
+
+  function openGame(id){ go("game_" + id); }
+
+  function gameHeader(el, label){
+    var head = h("div", {class:"game-head"});
+    head.appendChild(h("button", {class:"backbtn", text:"🏠", onclick:function(){ go("hub"); }}));
+    head.appendChild(h("div", {class:"game-tag", text:label}));
+    el.appendChild(head);
+  }
+
+  function passScreen(el, opts){
+    el.appendChild(h("div", {class:"spacer"}));
+    el.appendChild(h("div", {class:"result-badge", text:"🏅"}));
+    el.appendChild(h("h2", {class:"title-md center-text", text:"حصلتِ على ختم!"}));
+    el.appendChild(h("p", {class:"center-text", text: opts.msg || "أحسنتِ، محطة جديدة اكتملت."}));
+    el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text:"🪙 +"+COINS_PER_STAMP+" عملة مع هذا الختم"}));
+    el.appendChild(h("button", {class:"btn block", text:"العودة للجواز", onclick:function(){ go("hub"); }}));
+    el.appendChild(h("div", {class:"spacer"}));
+  }
+
+  // ---------- shared single-attempt quiz runner (Dr. Noura's style) ----------
+  // Every station is a sequential MCQ quiz: lock on pick, highlight correct/
+  // wrong, one attempt total — miss any question and the stamp is lost for
+  // good (matches game_noura's mechanic exactly).
+  function freshQuizState(){ return { qIndex:0, locked:false, pickedIdx:null, correctCount:0, failed:false }; }
+
+  function renderQuizFail(el, quiz, msg){
+    el.appendChild(h("div", {class:"spacer"}));
+    el.appendChild(h("div", {class:"result-badge", text:"😕", style:"filter:grayscale(1);"}));
+    el.appendChild(h("h2", {class:"title-md center-text", text:"مش المرة دي"}));
+    el.appendChild(h("p", {class:"center-text", text: msg || "محاولة واحدة بس لكل قضية — هذه إجابات نورة الصحيحة:"}));
+    quiz.forEach(function(q){
+      el.appendChild(h("div", {class:"answered-q"}, [ h("span", {text:q.q}), h("b", {text:"✓ "+q.options[q.correct]}) ]));
+    });
+    el.appendChild(h("button", {class:"btn block", text:"العودة للجواز", style:"margin-top:18px;", onclick:function(){ go("hub"); }}));
+  }
+
+  function renderQuizStep(el, gameId, quiz, st){
+    var qi = st.qIndex;
+    var item = quiz[qi];
+    el.appendChild(h("p", {class:"eyebrow", text:"سؤال " + (qi+1) + " من " + quiz.length + " · محاولة واحدة"}));
+    el.appendChild(h("div", {class:"card"}, [ h("h3", {class:"title-md", text:item.q, style:"font-size:16.5px;"}) ]));
+    var list = h("div", {class:"choice-list"});
+    item.options.forEach(function(opt, idx){
+      var cls = "choice";
+      if(st.locked){
+        if(idx === item.correct) cls += " correct";
+        else if(idx === st.pickedIdx) cls += " wrong";
+      }
+      var btn = h("button", {class:cls, text:opt, onclick: st.locked ? null : function(){
+        st.locked = true; st.pickedIdx = idx;
+        if(idx === item.correct) st.correctCount++;
+        render();
+      }});
+      list.appendChild(btn);
+    });
+    el.appendChild(list);
+    if(st.locked){
+      el.appendChild(h("button", {class:"btn block", style:"margin-top:16px;", text: qi < quiz.length-1 ? "السؤال التالي" : "عرض النتيجة", onclick:function(){
+        if(qi < quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
+        else {
+          if(st.correctCount === quiz.length){ awardStamp(gameId); }
+          else { st.failed = true; }
+          render();
+        }
+      }}));
+    }
+  }
+
+  function buildTermQuiz(terms){
+    return terms.map(function(t){
+      var opts = [t.correct].concat(t.distract);
+      shuffle(opts);
+      return { q: "أي تعريف صح لمصطلح «" + t.term + "» في قضية نورة؟", options: opts, correct: opts.indexOf(t.correct) };
+    });
+  }
+
+  // ---------- GAME: where does she even check? ----------
+  VIEWS.game_maze = function(el){
+    gameHeader(el, "🧭 وين أدخل أتابع؟");
+    if(!G.maze) G.maze = freshQuizState();
+    if(S.stamps.maze){ return passScreen(el, {msg:"عرفتِ بالظبط فين تتابعي حالة طلب زي طلب نورة."}); }
+    var st = G.maze;
+    if(st.failed){ return renderQuizFail(el, QUIZ_MAZE); }
+    renderQuizStep(el, "maze", QUIZ_MAZE, st);
+  };
+
+  // ---------- GAME: expectation vs reality ----------
+  VIEWS.game_expect = function(el){
+    gameHeader(el, "📦 توقع أم واقع؟");
+    if(!G.expect) G.expect = freshQuizState();
+    if(S.stamps.expect){ return passScreen(el, {msg:"قرأتِ الفجوة بين توقعات نورة وواقعها بدقة."}); }
+    var st = G.expect;
+    if(st.failed){ return renderQuizFail(el, QUIZ_EXPECT); }
+    renderQuizStep(el, "expect", QUIZ_EXPECT, st);
+  };
+
+  // ---------- GAME: order Noura's request journey ----------
+  VIEWS.game_redtape = function(el){
+    gameHeader(el, "📋 ترتيب رحلة الطلب");
+    if(!G.redtape) G.redtape = freshQuizState();
+    if(S.stamps.redtape){ return passScreen(el, {msg:"رتّبتِ مراحل طلب نورة الأربعة صح."}); }
+    var st = G.redtape;
+    if(st.failed){ return renderQuizFail(el, QUIZ_REDTAPE); }
+    renderQuizStep(el, "redtape", QUIZ_REDTAPE, st);
+  };
+
+  // ---------- GAME: wheel of Noura's terms ----------
+  VIEWS.game_wheel = function(el){
+    gameHeader(el, "🎡 عجلة مصطلحات نورة");
+    if(!G.wheel) G.wheel = Object.assign(freshQuizState(), { quiz: buildTermQuiz(WHEEL_TERMS) });
+    if(S.stamps.wheel){ return passScreen(el, {msg:"عرفتِ مصطلحات حل مشكلة نورة صح."}); }
+    var st = G.wheel;
+    if(st.failed){ return renderQuizFail(el, st.quiz); }
+    renderQuizStep(el, "wheel", st.quiz, st);
+  };
+
+  // ---------- GAME: walk in Noura's shoes ----------
+  VIEWS.game_journey = function(el){
+    gameHeader(el, "🚶 عيشي قلق نورة");
+    if(!G.journey) G.journey = freshQuizState();
+    if(S.stamps.journey){ return passScreen(el, {msg:"عايشتِ رحلة قلق نورة خطوة بخطوة."}); }
+    var st = G.journey;
+    if(st.failed){ return renderQuizFail(el, QUIZ_JOURNEY); }
+    renderQuizStep(el, "journey", QUIZ_JOURNEY, st);
+  };
+
+  // ---------- GAME: the fix that solves it ----------
+  VIEWS.game_insight = function(el){
+    gameHeader(el, "💡 لحظة الحل");
+    if(!G.insight) G.insight = Object.assign(freshQuizState(), { revealed:false });
+    if(S.stamps.insight){ return passScreen(el, {msg:"استوعبتِ الحل اللي بيريّح نورة."}); }
+    var st = G.insight;
+    if(st.failed){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }]); }
+    if(!st.revealed){
+      el.appendChild(h("div", {class:"card"}, [
+        h("p", {class:"eyebrow", text:"بطاقة معلومة · " + INSIGHT.term}),
+        h("p", {text: INSIGHT.text, style:"color:var(--text);"})
+      ]));
+      el.appendChild(h("button", {class:"btn block", text:"فهمت، هاتي السؤال", onclick:function(){ st.revealed = true; render(); }}));
+      return;
+    }
+    renderQuizStep(el, "insight", [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }], st);
+  };
+
+  // ---------- GAME: Dr. Noura's case (status tracking) ----------
+  VIEWS.game_noura = function(el){
+    gameHeader(el, "🔍 قضية د. نورة");
+    if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null };
+    if(S.stamps.noura){ return passScreen(el, {msg:"ساعدتِ د. نورة توضح لها حالة طلبها."}); }
+    if(G.noura.failed){
+      el.appendChild(h("div", {class:"spacer"}));
+      el.appendChild(h("div", {class:"result-badge", text:"😕", style:"filter:grayscale(1);"}));
+      el.appendChild(h("h2", {class:"title-md center-text", text:"مش المرة دي"}));
+      el.appendChild(h("p", {class:"center-text", text:"محاولة واحدة بس لكل قضية — هذه إجابات نورة الصحيحة:"}));
+      NOURA_CASE.quiz.forEach(function(q){
+        el.appendChild(h("div", {class:"answered-q"}, [ h("span", {text:q.q}), h("b", {text:"✓ "+q.options[q.correct]}) ]));
+      });
+      el.appendChild(h("button", {class:"btn block", text:"العودة للجواز", style:"margin-top:18px;", onclick:function(){ go("hub"); }}));
+      return;
+    }
+    var st = G.noura;
+    var c = NOURA_CASE;
+
+    if(st.step === 0){
+      el.appendChild(h("p", {class:"eyebrow", text:"المشكلة"}));
+      el.appendChild(avatarNouraSvg());
+      el.appendChild(h("div", {class:"card"}, [
+        h("h3", {class:"title-md", text:c.name + " · " + c.role, style:"font-size:17px;"}),
+        h("p", {text: c.problem, style:"color:var(--text);"})
+      ]));
+      var qs = h("div", {style:"margin-top:10px;"});
+      c.questions.forEach(function(q){ qs.appendChild(h("span", {class:"qchip", text:q})); });
+      el.appendChild(qs);
+      el.appendChild(h("div", {class:"spacer"}));
+      el.appendChild(h("button", {class:"btn block", text:"ساعدي نورة تتابع طلبها", onclick:function(){ st.step = 1; render(); }}));
+    } else if(st.step === 1){
+      el.appendChild(h("p", {class:"eyebrow", text:"الحل المقترح · حالة الطلب"}));
+      var track = h("div", {class:"tracker-wrap"});
+      c.stages.forEach(function(s){
+        var step = h("div", {class:"tracker-step " + s.state});
+        var dot = h("div", {class:"tracker-dot", text: s.state === "done" ? "✓" : ""});
+        step.appendChild(dot);
+        step.appendChild(h("div", {class:"tracker-lbl", text: s.label + (s.sub ? ("\n"+s.sub) : "")}));
+        track.appendChild(step);
+      });
+      el.appendChild(track);
+      var meta = h("div", {class:"tracker-meta"});
+      meta.appendChild(h("div", {}, [h("span", {text:"الجهة المسؤولة الآن"}), h("strong", {text:c.owner})]));
+      meta.appendChild(h("div", {}, [h("span", {text:"التوقيت المتوقع"}), h("strong", {text:c.eta})]));
+      el.appendChild(meta);
+      el.appendChild(h("p", {style:"margin-top:18px;", text:"ادرسي الشاشة كويس... هيجيلك اختبار سريع من 3 أسئلة، محاولة واحدة بس!"}));
+      el.appendChild(h("button", {class:"btn block", text:"ابدئي الاختبار", onclick:function(){ st.step = 2; render(); }}));
+    } else if(st.step === 2){
+      var qi = st.qIndex;
+      var quiz = c.quiz[qi];
+      el.appendChild(h("p", {class:"eyebrow", text:"سؤال " + (qi+1) + " من " + c.quiz.length + " · محاولة واحدة"}));
+      el.appendChild(h("div", {class:"card"}, [ h("h3", {class:"title-md", text:quiz.q, style:"font-size:16.5px;"}) ]));
+      var list = h("div", {class:"choice-list"});
+      quiz.options.forEach(function(opt, idx){
+        var cls = "choice";
+        if(st.locked){
+          if(idx === quiz.correct) cls += " correct";
+          else if(idx === st.pickedIdx) cls += " wrong";
+        }
+        var btn = h("button", {class:cls, text:opt, onclick: st.locked ? null : function(){
+          st.locked = true; st.pickedIdx = idx;
+          if(idx === quiz.correct) st.correctCount++;
+          render();
+        }});
+        list.appendChild(btn);
+      });
+      el.appendChild(list);
+      if(st.locked){
+        el.appendChild(h("button", {class:"btn block", style:"margin-top:16px;", text: qi < c.quiz.length-1 ? "السؤال التالي" : "عرض النتيجة", onclick:function(){
+          if(qi < c.quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
+          else {
+            if(st.correctCount === c.quiz.length){ awardStamp("noura"); }
+            else { G.noura.failed = true; }
+            render();
+          }
+        }}));
+      }
+    }
+  };
+
+  // ---------- FINISH ----------
+  VIEWS.finish = function(el){
+    el.appendChild(h("p", {class:"eyebrow", text:"اكتملت الرحلة"}));
+    el.appendChild(h("h2", {class:"title-md", text:"جهّزي شهادتك"}));
+    el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
+
+    if(!S.registered){
+      el.appendChild(h("p", {text:"اكتبي اسمك ليظهر على شهادة إتمام الرحلة:"}));
+      var input = h("input", {type:"text", id:"finalName", placeholder:"اسمك بالكامل"});
+      input.value = S.name || "";
+      el.appendChild(input);
+      el.appendChild(h("button", {class:"btn block", text:"إصدار الشهادة", onclick:function(){
+        var nm = input.value.trim();
+        if(!nm){ input.style.borderColor = "var(--warn)"; return; }
+        S.name = nm; S.registered = true; save();
+        render();
+      }}));
+    } else {
+      submitToLeaderboard(S.name, S.coins || 0);
+      el.appendChild(h("div", {class:"result-badge", text:"🏆"}));
+      el.appendChild(h("h3", {class:"title-md center-text", text:"شهادتك جاهزة!"}));
+      var canvas = h("canvas", {id:"certificate", width:"640", height:"400"});
+      el.appendChild(canvas);
+      drawCertificate(canvas, S.name);
+      el.appendChild(h("button", {class:"btn block", text:"احفظي شهادتك", style:"margin-top:12px;", onclick: saveCertificate}));
+      el.appendChild(h("p", {class:"center-text", style:"margin-top:12px;", text:"تم تسجيل اسمك في لوحة الصدارة تلقائيًا. احفظي الشهادة وأظهريها في نقطة التسجيل للدخول في سحب الجوائز."}));
+      el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+    }
+  };
+
+  // ---------- LEADERBOARD ----------
+  VIEWS.leaderboard = function(el){
+    gameHeader(el, "🏆 لوحة الصدارة");
+    el.appendChild(h("p", {text:"آخر اللي كملوا رحلتهم وجمعوا الأختام السبعة:"}));
+    var list = h("div", {id:"lb-list"});
+    list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"جارِ التحميل..."}));
+    el.appendChild(list);
+
+    fetch(LEADERBOARD_API + "/leaderboard")
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        list.innerHTML = "";
+        var entries = (data && data.leaderboard) || [];
+        if(entries.length === 0){
+          list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش خلص الرحلة لسه... يمكن تكوني إنتِ الأولى!"}));
+          return;
+        }
+        entries.forEach(function(e, i){
+          var row = h("div", {class:"answered-q"});
+          row.appendChild(h("span", {text: (i+1) + ". " + e.name}));
+          row.appendChild(h("b", {text: "🪙 " + e.coins}));
+          list.appendChild(row);
+        });
+      })
+      .catch(function(){
+        list.innerHTML = "";
+        list.appendChild(h("p", {class:"center-text", style:"color:var(--warn);", text:"تعذّر تحميل لوحة الصدارة الآن، حاولي تاني بعد شوية."}));
+      });
+  };
+
+  function drawCertificate(canvas, name){
+    var ctx = canvas.getContext("2d");
+    var g = ctx.createLinearGradient(0,0,640,400);
+    g.addColorStop(0, "#0c2c23"); g.addColorStop(1,"#081e18");
+    ctx.fillStyle = g; ctx.fillRect(0,0,640,400);
+    ctx.strokeStyle = "#2fe08c"; ctx.lineWidth = 3;
+    ctx.strokeRect(16,16,608,368);
+    ctx.fillStyle = "#e8b84b";
+    ctx.font = "bold 20px Cairo, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("GADD · اليوم العالمي لتجربة العميل", 320, 70);
+    ctx.fillStyle = "#eaf7f0";
+    ctx.font = "900 34px Cairo, sans-serif";
+    ctx.fillText("شهادة إتمام الرحلة", 320, 130);
+    ctx.font = "bold 26px Cairo, sans-serif";
+    ctx.fillStyle = "#2fe08c";
+    ctx.fillText(name || "العميل", 320, 210);
+    ctx.font = "16px Tajawal, sans-serif";
+    ctx.fillStyle = "#8fb8a8";
+    ctx.fillText("أكمل/ت جواز تجربة العميل الرقمي بجميع محطاته السبع", 320, 250);
+    ctx.font = "bold 18px Cairo, sans-serif";
+    ctx.fillStyle = "#e8b84b";
+    ctx.fillText("🏅 بادج: مستكشف/ة تجربة العميل  ·  🪙 " + (S.coins||0) + " عملة", 320, 285);
+    ctx.font = "16px Tajawal, sans-serif";
+    ctx.fillStyle = "#8fb8a8";
+    var d = new Date();
+    ctx.fillText(d.toLocaleDateString("ar-SA"), 320, 340);
+  }
+
+  function saveCertificate(){
+    var canvas = document.getElementById("certificate");
+    canvas.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "شهادة-تجربة-العميل.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    }, "image/png");
+  }
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
