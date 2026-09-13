@@ -472,7 +472,8 @@
   };
 
   // ---------- state ----------
-  var S = load() || { stamps:{}, name:"", screen:"intro" };
+  var S = load() || { stamps:{}, failed:{}, name:"", screen:"intro" };
+  if(!S.failed) S.failed = {}; // upgrade older saved state
   function load(){ try{ return JSON.parse(localStorage.getItem("cxpp_state")||"null"); }catch(e){ return null; } }
   function save(){ try{ localStorage.setItem("cxpp_state", JSON.stringify(S)); }catch(e){} }
 
@@ -500,7 +501,10 @@
   }
 
   function stampCount(){ return GAMES.filter(function(g){ return S.stamps[g.id]; }).length; }
+  function resolvedCount(){ return GAMES.filter(function(g){ return S.stamps[g.id] || S.failed[g.id]; }).length; }
   function allDone(){ return stampCount() === GAMES.length; }
+  function journeyClosed(){ return !allDone() && resolvedCount() === GAMES.length; }
+  function markFailed(id){ if(S.failed[id] || S.stamps[id]) return; S.failed[id] = true; save(); }
 
   function go(screen, extra){
     S.screen = screen;
@@ -631,12 +635,48 @@
 
   function avatarNouraSvg(){
     var wrap = document.createElement("div");
-    wrap.innerHTML = '<svg class="avatar" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'+
-      '<circle cx="32" cy="32" r="31" fill="#123f33" stroke="rgba(220,255,240,0.15)"/>'+
-      '<path d="M13 48c2-9 8-13 19-13s17 4 19 13" stroke="#e8b84b" stroke-width="2.4" stroke-linecap="round"/>'+
-      '<circle cx="32" cy="25" r="8.5" fill="#eaf7f0" opacity="0.92"/>'+
-      '<path d="M18 27c-1-12 6-20 14-20s15 8 14 20c-2-3-4-5-6-6 .6-4-2-9-8-9s-8.6 5-8 9c-2 1-4 3-6 6Z" fill="#e8b84b"/>'+
-      '<path d="M20 30c3 4 18 4 21 0" stroke="#e8b84b" stroke-width="2" stroke-linecap="round" fill="none" opacity=".55"/>'+
+    wrap.innerHTML = '<svg class="avatar" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+      '<defs>'+
+      '<radialGradient id="bgGrad" cx="35%" cy="30%" r="75%">'+
+      '<stop offset="0%" stop-color="#17493a"/>'+
+      '<stop offset="100%" stop-color="#0d2e25"/>'+
+      '</radialGradient>'+
+      '<linearGradient id="hijabGrad" x1="0.1" y1="0" x2="0.9" y2="1">'+
+      '<stop offset="0%" stop-color="#f0cb74"/>'+
+      '<stop offset="55%" stop-color="#e0ab3f"/>'+
+      '<stop offset="100%" stop-color="#bd8829"/>'+
+      '</linearGradient>'+
+      '<linearGradient id="blazerGrad" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#164a3b"/>'+
+      '<stop offset="100%" stop-color="#0c2c23"/>'+
+      '</linearGradient>'+
+      '</defs>'+
+      '<circle cx="100" cy="100" r="97" fill="url(#bgGrad)" stroke="rgba(220,255,240,0.15)" stroke-width="2"/>'+
+      '<path d="M40 197C43 163 64 148 100 148C136 148 157 163 160 197Z" fill="url(#blazerGrad)"/>'+
+      '<path d="M86 150 80 182 98 163Z" fill="#0a251d"/>'+
+      '<path d="M114 150 120 182 102 163Z" fill="#0a251d"/>'+
+      '<path d="M93 149c3 9 5 14 7 18 2-4 4-9 7-18-4 2-10 2-14 0Z" fill="#2fe08c"/>'+
+      '<path d="M100 122C70 122 51 145 47 190L153 190C149 145 130 122 100 122Z" fill="url(#hijabGrad)"/>'+
+      '<path d="M100 122C88 122 78 128 71 138 78 150 88 158 100 158 112 158 122 150 129 138 122 128 112 122 100 122Z" fill="#000" opacity="0.06"/>'+
+      '<ellipse cx="100" cy="86" rx="41" ry="54" fill="url(#hijabGrad)"/>'+
+      '<path d="M62 92C64 60 78 34 100 34C122 34 136 60 138 92" stroke="#fbe9bc" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.45"/>'+
+      '<rect x="88" y="118" width="24" height="38" rx="10" fill="#f0c290"/>'+
+      '<ellipse cx="100" cy="100" rx="32" ry="37" fill="#f0c290"/>'+
+      '<path d="M80 92c5-4 11-4 15-1" stroke="#5a4326" stroke-width="2.6" stroke-linecap="round" fill="none"/>'+
+      '<path d="M120 92c-5-4-11-4-15-1" stroke="#5a4326" stroke-width="2.6" stroke-linecap="round" fill="none"/>'+
+      '<circle cx="86" cy="102" r="10.5" fill="none" stroke="#123f33" stroke-width="2.6"/>'+
+      '<circle cx="114" cy="102" r="10.5" fill="none" stroke="#123f33" stroke-width="2.6"/>'+
+      '<path d="M96.5 102h7" stroke="#123f33" stroke-width="2.6"/>'+
+      '<path d="M75.5 100c-3-1-6 0-7 3" stroke="#123f33" stroke-width="2.4" stroke-linecap="round" fill="none"/>'+
+      '<path d="M124.5 100c3-1 6 0 7 3" stroke="#123f33" stroke-width="2.4" stroke-linecap="round" fill="none"/>'+
+      '<circle cx="86" cy="102" r="3.2" fill="#2b2114"/>'+
+      '<circle cx="114" cy="102" r="3.2" fill="#2b2114"/>'+
+      '<circle cx="84.8" cy="100.6" r="1" fill="#fff" opacity="0.85"/>'+
+      '<circle cx="112.8" cy="100.6" r="1" fill="#fff" opacity="0.85"/>'+
+      '<ellipse cx="78" cy="113" rx="6" ry="3.2" fill="#e8846a" opacity="0.25"/>'+
+      '<ellipse cx="122" cy="113" rx="6" ry="3.2" fill="#e8846a" opacity="0.25"/>'+
+      '<path d="M100 104c1 3 1 6-1 8" stroke="#d69f6c" stroke-width="2" stroke-linecap="round" fill="none"/>'+
+      '<path d="M89 118c5 5 17 5 22 0" stroke="#8a4f2a" stroke-width="2.6" stroke-linecap="round" fill="none"/>'+
       '</svg>';
     return wrap.firstChild;
   }
@@ -650,6 +690,17 @@
       el.appendChild(h("h2", {class:"title-md center-text", text:"اكتملت رحلتك!"}));
       el.appendChild(h("p", {class:"center-text", text:"جمعت الأختام السبعة كلها وفزتِ بالبادج. جاهزة تدخلي قرعة الجوائز؟"}));
       el.appendChild(h("button", {class:"btn block", text:"إنهاء الرحلة والتسجيل", onclick:function(){ go("finish"); }}));
+      el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+      el.appendChild(h("div", {class:"spacer"}));
+      return;
+    }
+
+    if(journeyClosed()){
+      el.appendChild(h("div", {class:"spacer"}));
+      el.appendChild(h("div", {class:"result-badge", text:"📪", style:"filter:grayscale(.4);"}));
+      el.appendChild(h("h2", {class:"title-md center-text", text:"انتهت رحلتك"}));
+      el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo'; font-size:17px;", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
+      el.appendChild(h("p", {class:"center-text", text:"عدّيتِ على كل المحطات، بس محتاجة كل الأختام السبعة عشان تدخلي قرعة الجوائز. جربي تاني في مرة قادمة!"}));
       el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
       el.appendChild(h("div", {class:"spacer"}));
       return;
@@ -746,7 +797,7 @@
         if(qi < quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
         else {
           if(st.correctCount === quiz.length){ awardStamp(gameId); }
-          else { st.failed = true; }
+          else { markFailed(gameId); }
           render();
         }
       }}));
@@ -767,7 +818,7 @@
     if(!G.maze) G.maze = freshQuizState();
     if(S.stamps.maze){ return passScreen(el, {msg:"عرفتِ بالظبط فين تتابعي حالة طلب زي طلب نورة."}); }
     var st = G.maze;
-    if(st.failed){ return renderQuizFail(el, QUIZ_MAZE); }
+    if(S.failed.maze){ return renderQuizFail(el, QUIZ_MAZE); }
     renderQuizStep(el, "maze", QUIZ_MAZE, st);
   };
 
@@ -777,7 +828,7 @@
     if(!G.expect) G.expect = freshQuizState();
     if(S.stamps.expect){ return passScreen(el, {msg:"قرأتِ الفجوة بين توقعات نورة وواقعها بدقة."}); }
     var st = G.expect;
-    if(st.failed){ return renderQuizFail(el, QUIZ_EXPECT); }
+    if(S.failed.expect){ return renderQuizFail(el, QUIZ_EXPECT); }
     renderQuizStep(el, "expect", QUIZ_EXPECT, st);
   };
 
@@ -787,7 +838,7 @@
     if(!G.redtape) G.redtape = freshQuizState();
     if(S.stamps.redtape){ return passScreen(el, {msg:"رتّبتِ مراحل طلب نورة الأربعة صح."}); }
     var st = G.redtape;
-    if(st.failed){ return renderQuizFail(el, QUIZ_REDTAPE); }
+    if(S.failed.redtape){ return renderQuizFail(el, QUIZ_REDTAPE); }
     renderQuizStep(el, "redtape", QUIZ_REDTAPE, st);
   };
 
@@ -797,7 +848,7 @@
     if(!G.wheel) G.wheel = Object.assign(freshQuizState(), { quiz: buildTermQuiz(WHEEL_TERMS) });
     if(S.stamps.wheel){ return passScreen(el, {msg:"عرفتِ مصطلحات حل مشكلة نورة صح."}); }
     var st = G.wheel;
-    if(st.failed){ return renderQuizFail(el, st.quiz); }
+    if(S.failed.wheel){ return renderQuizFail(el, st.quiz); }
     renderQuizStep(el, "wheel", st.quiz, st);
   };
 
@@ -807,7 +858,7 @@
     if(!G.journey) G.journey = freshQuizState();
     if(S.stamps.journey){ return passScreen(el, {msg:"عايشتِ رحلة قلق نورة خطوة بخطوة."}); }
     var st = G.journey;
-    if(st.failed){ return renderQuizFail(el, QUIZ_JOURNEY); }
+    if(S.failed.journey){ return renderQuizFail(el, QUIZ_JOURNEY); }
     renderQuizStep(el, "journey", QUIZ_JOURNEY, st);
   };
 
@@ -817,7 +868,7 @@
     if(!G.insight) G.insight = Object.assign(freshQuizState(), { revealed:false });
     if(S.stamps.insight){ return passScreen(el, {msg:"استوعبتِ الحل اللي بيريّح نورة."}); }
     var st = G.insight;
-    if(st.failed){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }]); }
+    if(S.failed.insight){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }]); }
     if(!st.revealed){
       el.appendChild(h("div", {class:"card"}, [
         h("p", {class:"eyebrow", text:"بطاقة معلومة · " + INSIGHT.term}),
@@ -834,7 +885,7 @@
     gameHeader(el, "🔍 قضية د. نورة");
     if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null };
     if(S.stamps.noura){ return passScreen(el, {msg:"ساعدتِ د. نورة توضح لها حالة طلبها."}); }
-    if(G.noura.failed){
+    if(S.failed.noura){
       el.appendChild(h("div", {class:"spacer"}));
       el.appendChild(h("div", {class:"result-badge", text:"😕", style:"filter:grayscale(1);"}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"مش المرة دي"}));
@@ -902,7 +953,7 @@
           if(qi < c.quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
           else {
             if(st.correctCount === c.quiz.length){ awardStamp("noura"); }
-            else { G.noura.failed = true; }
+            else { markFailed("noura"); }
             render();
           }
         }}));
