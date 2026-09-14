@@ -229,8 +229,13 @@
   }
   .station button:active{ transform:scale(.94); }
   .station.done button{ border-color: var(--gold); box-shadow:0 0 16px rgba(232,184,75,.35); }
+  .station.locked button{ opacity:.35; cursor:not-allowed; }
+  .station.locked button:active{ transform:none; }
+  .station.current button{ border-color:var(--accent); box-shadow:0 0 16px rgba(47,224,140,.45); animation: stationPulse 1.8s ease-in-out infinite; }
+  @keyframes stationPulse{ 0%,100%{ box-shadow:0 0 16px rgba(47,224,140,.45);} 50%{ box-shadow:0 0 26px rgba(47,224,140,.8);} }
   .station .lbl{ font-size:10.5px; font-family:'Tajawal'; font-weight:700; color:var(--text); }
   .station .check{ position:absolute; top:-4px; left:-4px; background:var(--gold); color:#3a2a04; width:20px;height:20px;border-radius:50%; font-size:12px; display:flex; align-items:center; justify-content:center; font-weight:900; }
+  .station .check.fail{ background:var(--warn); color:#3a0f0f; }
 
   /* ---------- game chrome ---------- */
   .game-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
@@ -308,6 +313,7 @@
   .tracker-meta strong{ color:var(--accent); font-size:13px; }
   .answered-q{ display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-top:8px; font-size:13px; font-weight:700; }
   .answered-q b{ color:var(--accent); font-family:'Cairo'; }
+  .answered-q.me{ border-color:var(--accent); background:rgba(47,224,140,0.10); box-shadow:0 0 0 1px var(--accent) inset; }
   .timer{ font-family:'Cairo'; font-weight:900; font-size:22px; color:var(--gold); }
 
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin-top:6px; }
@@ -538,14 +544,41 @@
     render();
   }
 
-  function speakArabic(text){
+  function pickArabicVoice(){
     try{
-      if(!window.speechSynthesis) return;
+      var voices = window.speechSynthesis.getVoices() || [];
+      var v = voices.find(function(v){ return /^ar/i.test(v.lang); });
+      return v || null;
+    }catch(e){ return null; }
+  }
+
+  function doSpeak(text){
+    try{
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text.replace(/\n/g, " "));
       u.lang = "ar-SA";
       u.rate = 0.95;
+      var v = pickArabicVoice();
+      if(v) u.voice = v;
       window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function speakArabic(text){
+    try{
+      if(!window.speechSynthesis) return;
+      var voices = window.speechSynthesis.getVoices();
+      if(!voices || voices.length === 0){
+        var handled = false;
+        window.speechSynthesis.onvoiceschanged = function(){
+          if(handled) return;
+          handled = true;
+          doSpeak(text);
+        };
+        setTimeout(function(){ if(!handled){ handled = true; doSpeak(text); } }, 350);
+      } else {
+        doSpeak(text);
+      }
     }catch(e){}
   }
 
@@ -789,22 +822,34 @@
     GAMES.forEach(function(g, i){
       var angle = (360 / GAMES.length) * i - 90;
       var rad = angle * Math.PI/180;
-      var st = h("div", {class:"station" + (S.stamps[g.id] ? " done" : "")});
+      var passed = !!S.stamps[g.id];
+      var failed = !!S.failed[g.id];
+      var unlocked = isUnlocked(i);
+      var cls = "station";
+      if(passed) cls += " done";
+      if(!unlocked) cls += " locked";
+      else if(!passed && !failed) cls += " current";
+      var st = h("div", {class:cls});
       st.style.transform = "translate(" + (Math.cos(rad)*R) + "px," + (Math.sin(rad)*R) + "px)";
-      var btn = h("button", {onclick:(function(id){ return function(){ openGame(id); }; })(g.id)});
-      btn.appendChild(h("div", {text:g.icon}));
+      var btnAttrs = {};
+      if(unlocked){ btnAttrs.onclick = (function(id){ return function(){ openGame(id); }; })(g.id); }
+      else { btnAttrs.disabled = "disabled"; }
+      var btn = h("button", btnAttrs);
+      btn.appendChild(h("div", {text: unlocked ? g.icon : "🔒"}));
       btn.appendChild(h("div", {class:"lbl", text:g.label}));
       st.appendChild(btn);
-      if(S.stamps[g.id]) st.appendChild(h("div", {class:"check", text:"✓"}));
+      if(passed) st.appendChild(h("div", {class:"check", text:"✓"}));
+      else if(failed) st.appendChild(h("div", {class:"check fail", text:"✕"}));
       orbit.appendChild(st);
     });
     orbitWrap.appendChild(orbit);
     el.appendChild(orbitWrap);
-    el.appendChild(h("p", {class:"center-text", text:"أكملي كل المحطات لتجمعي الجواز كاملًا وتدخلي السحب على الجوائز."}));
+    el.appendChild(h("p", {class:"center-text", text:"المحطات بتتفتح بالترتيب — خلّصي كل محطة عشان يتفتح اللي بعدها."}));
     el.appendChild(h("button", {class:"btn secondary block", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
   };
 
-  function openGame(id){ go("game_" + id); }
+  function isUnlocked(i){ return i === 0 || !!(S.stamps[GAMES[i-1].id] || S.failed[GAMES[i-1].id]); }
+  function openGame(id){ if(!isUnlocked(GAMES.findIndex(function(g){ return g.id === id; }))) return; go("game_" + id); }
 
   function gameHeader(el, label){
     var head = h("div", {class:"game-head"});
@@ -1080,12 +1125,16 @@
           list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش لعب لسه... يمكن تكوني إنتِ الأولى!"}));
           return;
         }
+        var meRow = null;
         entries.forEach(function(e, i){
-          var row = h("div", {class:"answered-q"});
-          row.appendChild(h("span", {text: (i+1) + ". " + e.name}));
+          var isMe = !!(S.name && e.name === S.name);
+          var row = h("div", {class:"answered-q" + (isMe ? " me" : "")});
+          row.appendChild(h("span", {text: (i+1) + ". " + e.name + (isMe ? " (إنتِ)" : "")}));
           row.appendChild(h("b", {text: "🏅 " + (e.stamps||0) + "/" + GAMES.length + "  ·  🪙 " + e.coins}));
           list.appendChild(row);
+          if(isMe && !meRow) meRow = row;
         });
+        if(meRow) meRow.scrollIntoView({block:"center"});
       })
       .catch(function(){
         list.innerHTML = "";
