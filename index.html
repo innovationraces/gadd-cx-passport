@@ -151,6 +151,25 @@
     box-shadow: 0 0 0 6px rgba(47,224,140,0.06);
   }
 
+  /* ---------- character select ---------- */
+  .char-select-row{ display:flex; gap:16px; justify-content:center; margin:18px 0; }
+  .char-card{
+    flex:1; max-width:150px;
+    background:var(--panel); border:1.5px solid var(--line); border-radius: var(--radius-lg);
+    padding:20px 10px; display:flex; flex-direction:column; align-items:center; gap:12px;
+    transition: transform .15s ease, border-color .2s;
+  }
+  .char-card:active{ transform:scale(.96); }
+  .char-card:hover{ border-color:var(--accent-dim); }
+  .char-emoji{
+    width:84px; height:84px; border-radius:50%;
+    background: radial-gradient(circle at 35% 28%, var(--panel-2), var(--bg-0));
+    border:2px solid var(--accent-dim);
+    display:flex; align-items:center; justify-content:center;
+    font-size:40px;
+  }
+  .char-label{ font-family:'Cairo'; font-weight:800; font-size:14px; color:var(--text); }
+
   /* ---------- story beats ---------- */
   #story-wrap{ display:flex; flex-direction:column; height:100%; }
   .beat-fill{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
@@ -418,7 +437,7 @@
     { mood:"warm", text:"بس تعرفوا إيش اللي مضايقني فعلًا؟\nمو إن القرار اتأخر... المشكلة إني مش عارفة قاعد يحصل إيه." },
     { mood:"warm", text:"أنا ما أبي أرى الإجراءات الداخلية أو الأقسام.\nأنا أرى تجربة واحدة واضحة لطلبي." },
     { mood:"cool", text:"هل المشكلة في القرار نفسه... أم في وضوح المتابعة؟" },
-    { mood:"cool", text:"جرّبوا تعيشوا قضيتي خطوة بخطوة عبر 7 محطات،\nوساعدوني أوصل لإجابات أسئلتي الثلاثة 👇" }
+    { mood:"cool", text:"جرّبوا تعيشوا قضيتي خطوة بخطوة عبر 7 بوابات،\nوساعدوني أوصل لإجابات أسئلتي الثلاثة 👇" }
   ];
 
   // Every station below is one facet of Dr. Noura's single case: not knowing
@@ -607,7 +626,7 @@
 
   function renderStrip(){
     var strip = document.getElementById("strip");
-    var showStrip = !(S.screen === "intro" || S.screen === "story");
+    var showStrip = !(S.screen === "intro" || S.screen === "story" || S.screen === "character");
     strip.hidden = !showStrip;
     if(!showStrip) return;
     document.getElementById("strip-count").textContent = stampCount() + " / " + GAMES.length;
@@ -651,7 +670,7 @@
     el.appendChild(heroWrap);
     el.appendChild(h("p", {class:"eyebrow", text:"اليوم العالمي لتجربة العميل · GADD"}));
     el.appendChild(h("h1", {class:"title-xl", text:"جواز تجربة العميل الرقمي"}));
-    el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيشي مشكلتها بنفسك عبر <strong class='hl'>7 محطات</strong>، واجمعي كل الأختام والعملات لتدخلي قرعة الجوائز."}));
+    el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيشي مشكلتها بنفسك عبر <strong class='hl'>7 بوابات</strong>، واجمعي كل الأختام والعملات لتدخلي قرعة الجوائز."}));
     var nameWrap = h("div", {});
     var input = h("input", {type:"text", id:"nameInput", placeholder:"اكتب اسمك (اختياري الآن)"});
     input.value = S.name || "";
@@ -660,8 +679,30 @@
     el.appendChild(h("button", {class:"btn block", text:"ابدأ رحلتك", onclick:function(){
       S.name = input.value.trim();
       save();
-      go("story");
+      go("character");
     }}));
+    el.appendChild(h("div", {class:"spacer"}));
+  };
+
+  VIEWS.character = function(el){
+    el.appendChild(h("div", {class:"spacer"}));
+    el.appendChild(h("p", {class:"eyebrow", text:"قبل ما تبدئي"}));
+    el.appendChild(h("h2", {class:"title-md", text:"اختاري شخصيتك في الرحلة"}));
+    el.appendChild(h("p", {text:"هتظهر شخصيتك في جواز تجربتك وشهادتك."}));
+    var row = h("div", {class:"char-select-row"});
+    [
+      { role:"دكتور", emoji:"👨‍⚕️" },
+      { role:"دكتورة", emoji:"👩‍⚕️" }
+    ].forEach(function(c){
+      var card = h("button", {class:"char-card", onclick:function(){
+        S.playerRole = c.role; S.playerEmoji = c.emoji; save();
+        go("story");
+      }});
+      card.appendChild(h("div", {class:"char-emoji", text:c.emoji}));
+      card.appendChild(h("div", {class:"char-label", text:c.role}));
+      row.appendChild(card);
+    });
+    el.appendChild(row);
     el.appendChild(h("div", {class:"spacer"}));
   };
 
@@ -784,7 +825,7 @@
       el.appendChild(h("div", {class:"result-badge", text:"📪", style:"filter:grayscale(.4);"}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"انتهت رحلتك"}));
       el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo'; font-size:17px;", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
-      el.appendChild(h("p", {class:"center-text", text:"عدّيتِ على كل المحطات، بس محتاجة كل الأختام السبعة عشان تدخلي قرعة الجوائز. جربي تاني في مرة قادمة!"}));
+      el.appendChild(h("p", {class:"center-text", text:"عدّيتِ على كل البوابات، بس محتاجة كل الأختام السبعة عشان تدخلي قرعة الجوائز. جربي تاني في مرة قادمة!"}));
 
       if(!S.registered){
         el.appendChild(h("p", {text:"اكتبي اسمك عشان نتيجتك تتسجل في لوحة الصدارة:"}));
@@ -807,8 +848,8 @@
       return;
     }
 
-    el.appendChild(h("p", {class:"eyebrow", text: S.name ? ("أهلًا " + S.name) : "رحلتك"}));
-    el.appendChild(h("h2", {class:"title-md", text:"اختاري محطة وابدئي"}));
+    el.appendChild(h("p", {class:"eyebrow", text: S.name ? ("أهلًا " + (S.playerRole ? S.playerRole + " " : "") + S.name) : "رحلتك"}));
+    el.appendChild(h("h2", {class:"title-md", text:"اختاري بوابة وابدئي"}));
 
     var orbitWrap = h("div", {id:"orbit-wrap"});
     var orbit = h("div", {id:"orbit"});
@@ -844,7 +885,7 @@
     });
     orbitWrap.appendChild(orbit);
     el.appendChild(orbitWrap);
-    el.appendChild(h("p", {class:"center-text", text:"المحطات بتتفتح بالترتيب — خلّصي كل محطة عشان يتفتح اللي بعدها."}));
+    el.appendChild(h("p", {class:"center-text", text:"البوابات بتتفتح بالترتيب — خلّصي كل بوابة عشان تتفتح اللي بعدها."}));
     el.appendChild(h("button", {class:"btn secondary block", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
   };
 
@@ -862,7 +903,7 @@
     el.appendChild(h("div", {class:"spacer"}));
     el.appendChild(h("div", {class:"result-badge", text:"🏅"}));
     el.appendChild(h("h2", {class:"title-md center-text", text:"حصلتِ على ختم!"}));
-    el.appendChild(h("p", {class:"center-text", text: opts.msg || "أحسنتِ، محطة جديدة اكتملت."}));
+    el.appendChild(h("p", {class:"center-text", text: opts.msg || "أحسنتِ، بوابة جديدة اكتملت."}));
     el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text:"🪙 +"+COINS_PER_STAMP+" عملة مع هذا الختم"}));
     el.appendChild(h("button", {class:"btn block", text:"العودة للجواز", onclick:function(){ go("hub"); }}));
     el.appendChild(h("div", {class:"spacer"}));
@@ -1079,6 +1120,7 @@
 
   // ---------- FINISH ----------
   VIEWS.finish = function(el){
+    gameHeader(el, "🏆 شهادتك");
     el.appendChild(h("p", {class:"eyebrow", text:"اكتملت الرحلة"}));
     el.appendChild(h("h2", {class:"title-md", text:"جهّزي شهادتك"}));
     el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
@@ -1158,10 +1200,10 @@
     ctx.fillText("شهادة إتمام الرحلة", 320, 130);
     ctx.font = "bold 26px Cairo, sans-serif";
     ctx.fillStyle = "#2fe08c";
-    ctx.fillText(name || "العميل", 320, 210);
+    ctx.fillText((S.playerRole ? S.playerRole + " " : "") + (name || "العميل"), 320, 210);
     ctx.font = "16px Tajawal, sans-serif";
     ctx.fillStyle = "#8fb8a8";
-    ctx.fillText("أكمل/ت جواز تجربة العميل الرقمي بجميع محطاته السبع", 320, 250);
+    ctx.fillText("أكمل/ت جواز تجربة العميل الرقمي بجميع بواباته السبع", 320, 250);
     ctx.font = "bold 18px Cairo, sans-serif";
     ctx.fillStyle = "#e8b84b";
     ctx.fillText("🏅 بادج: مستكشف/ة تجربة العميل  ·  🪙 " + (S.coins||0) + " عملة", 320, 285);
