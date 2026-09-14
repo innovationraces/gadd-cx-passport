@@ -189,7 +189,7 @@
   #story-wrap{ display:flex; flex-direction:column; height:100%; }
   .beat-fill{ flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
   .avatar{
-    width:64px; height:64px; margin-bottom:16px;
+    width:100px; height:100px; margin-bottom:16px;
     filter: drop-shadow(0 6px 16px rgba(0,0,0,.4));
   }
   .avatar-hero{
@@ -583,7 +583,8 @@
   var musicPadOscs = null;
   var musicInterval = null;
   var musicMelodyIdx = 0;
-  var MUSIC_MELODY = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.00, 698.46]; // C E G E D F A F — simple uplifting loop
+  var MUSIC_MELODY = [523.25, 659.25, 783.99, 1046.50, 783.99, 987.77, 880.00, 783.99, 659.25, 987.77, 880.00, 659.25]; // C E G C6 G B A G E B A E — bouncy major-scale skip pattern
+  var MUSIC_NOTE_MS = 260; // upbeat tempo
 
   function ensureAudioCtx(){
     try{
@@ -625,35 +626,41 @@
     var ctx = ensureAudioCtx();
     if(!ctx) return;
     musicGain = ctx.createGain();
-    musicGain.gain.value = 0.16;
+    musicGain.gain.value = 0.20;
     musicGain.connect(ctx.destination);
-    musicPadOscs = [130.81, 196.00].map(function(f){
-      var osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = f;
-      var g = ctx.createGain();
-      g.gain.value = 0.18;
-      osc.connect(g); g.connect(musicGain);
-      osc.start();
-      return osc;
-    });
     musicInterval = setInterval(function(){
       if(!S.soundOn){ stopMusic(); return; }
       var ctx2 = ensureAudioCtx();
       if(!ctx2 || !musicGain) return;
-      var freq = MUSIC_MELODY[musicMelodyIdx % MUSIC_MELODY.length];
+      var idx = musicMelodyIdx % MUSIC_MELODY.length;
+      var freq = MUSIC_MELODY[idx];
       musicMelodyIdx++;
+      var accent = (idx % 3 === 0); // playful accent every 3rd note for a bouncy feel
+
       var osc = ctx2.createOscillator();
       var g = ctx2.createGain();
       osc.type = "triangle";
       osc.frequency.value = freq;
       var t0 = ctx2.currentTime;
+      var peak = accent ? 0.55 : 0.34;
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(0.5, t0 + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.9);
+      g.gain.linearRampToValueAtTime(peak, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
       osc.connect(g); g.connect(musicGain);
-      osc.start(t0); osc.stop(t0 + 1);
-    }, 1000);
+      osc.start(t0); osc.stop(t0 + 0.24);
+
+      if(accent){
+        var bass = ctx2.createOscillator();
+        var bg = ctx2.createGain();
+        bass.type = "sine";
+        bass.frequency.value = freq / 4;
+        bg.gain.setValueAtTime(0.0001, t0);
+        bg.gain.linearRampToValueAtTime(0.24, t0 + 0.02);
+        bg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+        bass.connect(bg); bg.connect(musicGain);
+        bass.start(t0); bass.stop(t0 + 0.28);
+      }
+    }, MUSIC_NOTE_MS);
   }
 
   function stopMusic(){
@@ -836,6 +843,9 @@
 
   VIEWS.character = function(el){
     el.appendChild(h("div", {class:"spacer"}));
+    var charHeroWrap = h("div", {style:"display:flex; justify-content:center; margin-bottom:10px;"});
+    charHeroWrap.appendChild(avatarNouraSvg("avatar-hero-sm"));
+    el.appendChild(charHeroWrap);
     el.appendChild(h("p", {class:"eyebrow", text:"قبل ما تبدأ"}));
     el.appendChild(h("h2", {class:"title-md", text:"اختار شخصيتك في الرحلة"}));
     el.appendChild(h("p", {text:"هتظهر شخصيتك في جواز تجربتك وشهادتك."}));
@@ -998,6 +1008,9 @@
       return;
     }
 
+    var hubHeroWrap = h("div", {style:"display:flex; justify-content:center; margin-bottom:6px;"});
+    hubHeroWrap.appendChild(avatarNouraSvg("avatar-hero-sm"));
+    el.appendChild(hubHeroWrap);
     el.appendChild(h("p", {class:"eyebrow", text: S.name ? ("أهلًا " + (S.playerRole ? S.playerRole + " " : "") + S.name) : "رحلتك"}));
     el.appendChild(h("h2", {class:"title-md", text:"اختار بوابة وابدأ"}));
 
@@ -1042,11 +1055,16 @@
   function isUnlocked(i){ return i === 0 || !!(S.stamps[GAMES[i-1].id] || S.failed[GAMES[i-1].id]); }
   function openGame(id){ if(!isUnlocked(GAMES.findIndex(function(g){ return g.id === id; }))) return; go("game_" + id); }
 
-  function gameHeader(el, label){
+  function gameHeader(el, label, opts){
     var head = h("div", {class:"game-head"});
     head.appendChild(h("button", {class:"backbtn", text:"🏠", onclick:function(){ go("hub"); }}));
     head.appendChild(h("div", {class:"game-tag", text:label}));
     el.appendChild(head);
+    if(!(opts && opts.noAvatar)){
+      var avWrap = h("div", {style:"display:flex; justify-content:center; margin:10px 0 6px;"});
+      avWrap.appendChild(avatarNouraSvg("avatar-hero-sm"));
+      el.appendChild(avWrap);
+    }
   }
 
   function passScreen(el, opts){
@@ -1193,10 +1211,14 @@
 
   // ---------- GAME: Dr. Noura's case (status tracking) ----------
   VIEWS.game_noura = function(el){
-    gameHeader(el, "🔍 قضية د. نورة");
+    gameHeader(el, "🔍 قضية د. نورة", {noAvatar:true});
     if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null, hintShown:false };
-    if(S.stamps.noura){ return passScreen(el, {msg:"ساعدت د. نورة توضح لها حالة طلبها."}); }
+    if(S.stamps.noura){
+      el.appendChild(h("div", {style:"display:flex; justify-content:center; margin:6px 0;"}, [avatarNouraSvg("avatar-hero-sm")]));
+      return passScreen(el, {msg:"ساعدت د. نورة توضح لها حالة طلبها."});
+    }
     if(S.failed.noura){
+      el.appendChild(h("div", {style:"display:flex; justify-content:center; margin:6px 0;"}, [avatarNouraSvg("avatar-hero-sm")]));
       el.appendChild(h("div", {class:"spacer"}));
       el.appendChild(h("div", {class:"result-badge", text:"😕", style:"filter:grayscale(1);"}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"مش المرة دي"}));
@@ -1226,6 +1248,7 @@
       el.appendChild(h("div", {class:"spacer"}));
       el.appendChild(h("button", {class:"btn block", text:"ساعد نورة تتابع طلبها", onclick:function(){ st.step = 1; render(); }}));
     } else if(st.step === 1){
+      el.appendChild(h("div", {style:"display:flex; justify-content:center; margin:6px 0;"}, [avatarNouraSvg("avatar-hero-sm")]));
       el.appendChild(h("p", {class:"eyebrow", text:"الحل المقترح · حالة الطلب"}));
       var track = h("div", {class:"tracker-wrap"});
       c.stages.forEach(function(s){
@@ -1245,6 +1268,7 @@
     } else if(st.step === 2){
       var qi = st.qIndex;
       var quiz = c.quiz[qi];
+      el.appendChild(h("div", {style:"display:flex; justify-content:center; margin:6px 0;"}, [avatarNouraSvg("avatar-hero-sm")]));
       el.appendChild(h("p", {class:"eyebrow", text:"سؤال " + (qi+1) + " من " + c.quiz.length + " · محاولة واحدة"}));
       el.appendChild(h("div", {class:"card"}, [ h("h3", {class:"title-md", text:quiz.q, style:"font-size:16.5px;"}) ]));
       if(quiz.hint){
