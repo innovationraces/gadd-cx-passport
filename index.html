@@ -335,6 +335,20 @@
   .answered-q.me{ border-color:var(--accent); background:rgba(47,224,140,0.10); box-shadow:0 0 0 1px var(--accent) inset; }
   .timer{ font-family:'Cairo'; font-weight:900; font-size:22px; color:var(--gold); }
 
+  .hint-btn{
+    display:block; margin:10px 0 2px; padding:9px 14px;
+    background: rgba(232,184,75,0.10); border:1.5px dashed rgba(232,184,75,0.5);
+    border-radius:12px; color:var(--gold); font-family:'Tajawal'; font-weight:700;
+    font-size:13px; text-align:center;
+  }
+  .hint-btn:active{ transform:scale(.97); }
+  .hint-box{
+    margin:10px 0 2px; padding:11px 14px;
+    background: rgba(232,184,75,0.12); border:1.5px solid rgba(232,184,75,0.4);
+    border-radius:12px; color:var(--gold); font-family:'Tajawal'; font-weight:700;
+    font-size:13px; line-height:1.6;
+  }
+
   .wheel-wrap{ display:flex; flex-direction:column; align-items:center; margin-top:6px; }
   #wheel-svg{ width:230px; height:230px; transition: transform 3.2s cubic-bezier(.17,.67,.2,1); }
   .pointer{ font-size:26px; margin-bottom:-8px; }
@@ -392,6 +406,7 @@
   <div id="strip" hidden>
     <div class="count" id="strip-count">0 / 7</div>
     <div class="stamps" id="strip-dots"></div>
+    <button id="strip-sound" class="speak-btn" aria-label="الصوت">🔇</button>
     <div class="coin-pill" id="strip-coins">🪙 0</div>
   </div>
   <div id="screen"></div>
@@ -424,9 +439,9 @@
     owner:"اللجنة العلمية",
     eta:"خلال 2-4 أسابيع",
     quiz:[
-      { q:"أين وصل طلب د. نورة الآن؟", options:["قيد المراجعة","تم الرفض نهائيًا","لم يُستلم بعد"], correct:0 },
-      { q:"مين الجهة المسؤولة عن مراجعته حاليًا؟", options:["قسم تقنية المعلومات","اللجنة العلمية","الشؤون المالية"], correct:1 },
-      { q:"متى يُتوقع صدور القرار؟", options:["خلال 24 ساعة","غير معروف نهائيًا","خلال 2-4 أسابيع"], correct:2 }
+      { q:"أين وصل طلب د. نورة الآن؟", options:["قيد المراجعة","تم الرفض نهائيًا","لم يُستلم بعد"], correct:0, hint:"شوفي شاشة تتبع الطلب اللي ظهرتلك قبل السؤال، فيها الحالة الحالية." },
+      { q:"مين الجهة المسؤولة عن مراجعته حاليًا؟", options:["قسم تقنية المعلومات","اللجنة العلمية","الشؤون المالية"], correct:1, hint:"الاسم مكتوب بوضوح في قسم «الجهة المسؤولة الآن»." },
+      { q:"متى يُتوقع صدور القرار؟", options:["خلال 24 ساعة","غير معروف نهائيًا","خلال 2-4 أسابيع"], correct:2, hint:"التوقيت المتوقع موجود في نفس الشاشة اللي فاتت." }
     ]
   };
 
@@ -446,59 +461,80 @@
 
   var QUIZ_MAZE = [
     { q:"نورة عايزة تعرف حالة طلبها لأول مرة، تدخل فين؟",
-      options:["تبعت رسالة على السوشيال ميديا","تتصل بمركز الاتصال العام","تفتح تتبّع الطلب في البوابة الرقمية"], correct:2 },
+      options:["تبعت رسالة على السوشيال ميديا","تتصل بمركز الاتصال العام","تفتح تتبّع الطلب في البوابة الرقمية"], correct:2,
+      hint:"فكّري في المكان الرسمي اللي بيوريلك حالة الطلب مباشرة، مش قنوات عامة زي السوشيال ميديا أو الاتصال." },
     { q:"البوابة موضّح فيها «قيد المراجعة» مع اسم الجهة المسؤولة، تعمل إيه بعد كده؟",
-      options:["تتأكد من التوقيت المتوقع الظاهر في نفس الشاشة","تتجاهل التفاصيل وتقفل الصفحة","تدوّر على رقم عشوائي"], correct:0 },
+      options:["تتأكد من التوقيت المتوقع الظاهر في نفس الشاشة","تتجاهل التفاصيل وتقفل الصفحة","تدوّر على رقم عشوائي"], correct:0,
+      hint:"الشاشة نفسها فيها كل المعلومات اللي محتاجاها — مفيش داعي تسيبيها من غير ما تكمّلي القراءة." },
     { q:"عايزة تعرف امتى المفروض يصدر القرار، أدق مصدر إيه؟",
-      options:["تخمين شخصي","التوقيت المتوقع الظاهر في شاشة تتبع الطلب","سؤال زميلة في قسم تاني"], correct:1 },
+      options:["تخمين شخصي","التوقيت المتوقع الظاهر في شاشة تتبع الطلب","سؤال زميلة في قسم تاني"], correct:1,
+      hint:"المصدر الرسمي دايمًا أدق من التخمين أو سؤال حد مش مسؤول عن طلبك." },
     { q:"لو حسّت إن فيه تأخير عدّى التوقيت المعلن؟",
-      options:["تتجاهل الموضوع","تقدّم طلب جديد من الأول","تتواصل مباشرة مع الجهة المسؤولة المذكورة وتستفسر"], correct:2 }
+      options:["تتجاهل الموضوع","تقدّم طلب جديد من الأول","تتواصل مباشرة مع الجهة المسؤولة المذكورة وتستفسر"], correct:2,
+      hint:"البوابة قالتلك مين الجهة المسؤولة بالاسم — استخدمي المعلومة دي بدل ما تبدئي من الصفر." }
   ];
 
   var QUIZ_EXPECT = [
     { q:"توقعت نورة ردًا خلال أسبوع من تقديم الطلب، لكن الواقع إن الرد اتأخر لشهر كامل من غير أي تحديث. هل الواقع طابق توقعها؟",
-      options:["أيوه طابق","لأ ما طابقش"], correct:1 },
+      options:["أيوه طابق","لأ ما طابقش"], correct:1,
+      hint:"قارني المدة المتوقعة بالمدة الفعلية اللي حصلت — فيه فرق واضح هنا." },
     { q:"توقعت إنها تلاقي اسم الجهة المسؤولة موضّح في مكان واحد، ولقت فعلاً اسم اللجنة العلمية واضح في شاشة تتبع الطلب. هل طابق توقعها؟",
-      options:["أيوه طابق","لأ ما طابقش"], correct:0 },
+      options:["أيوه طابق","لأ ما طابقش"], correct:0,
+      hint:"هنا اللي حصل فعلاً هو اللي كانت نورة مستنياه بالظبط." },
     { q:"توقعت إن مركز الاتصال العام هيديها تفاصيل دقيقة عن طلبها، لكنهم حوّلوها لجهة تانية من غير إجابة واضحة. هل طابق توقعها؟",
-      options:["أيوه طابق","لأ ما طابقش"], correct:1 },
+      options:["أيوه طابق","لأ ما طابقش"], correct:1,
+      hint:"التحويل من غير إجابة واضحة مش هو اللي كانت نورة مستنياه." },
     { q:"توقعت إن شاشة تتبع الطلب هتوريها توقيت تقديري للقرار، ولقت فعلاً «خلال 2-4 أسابيع» موضّحة. هل طابق توقعها؟",
-      options:["أيوه طابق","لأ ما طابقش"], correct:0 }
+      options:["أيوه طابق","لأ ما طابقش"], correct:0,
+      hint:"اللي ظهر على الشاشة هو بالظبط اللي كانت متوقعاه." }
   ];
 
   var QUIZ_REDTAPE = [
     { q:"بعد ما نورة تقدّم طلبها، إيه أول حالة تظهر في تتبع الطلب؟",
-      options:["القرار","تم الاستلام","تحت التقييم"], correct:1 },
+      options:["القرار","تم الاستلام","تحت التقييم"], correct:1,
+      hint:"فكّري في أول خطوة منطقية بعد ما الطلب يوصل." },
     { q:"بعد «تم الاستلام»، الحالة اللي بعدها إيه؟",
-      options:["قيد المراجعة","القرار","لم يُستلم"], correct:0 },
+      options:["قيد المراجعة","القرار","لم يُستلم"], correct:0,
+      hint:"ارجعي لشاشة تتبع الطلب اللي شفتيها قبل كده، الترتيب موضّح فيها." },
     { q:"بعد «قيد المراجعة»، الخطوة اللي بعدها؟",
-      options:["تم الاستلام","تحت التقييم","القرار"], correct:1 },
+      options:["تم الاستلام","تحت التقييم","القرار"], correct:1,
+      hint:"الترتيب زي ما ظهر بالظبط: استلام، مراجعة، تقييم، قرار." },
     { q:"آخر حالة في رحلة طلب نورة هي إيه؟",
-      options:["القرار","قيد المراجعة","تم الاستلام"], correct:0 }
+      options:["القرار","قيد المراجعة","تم الاستلام"], correct:0,
+      hint:"هي الخطوة اللي نورة مستنياها من الأول." }
   ];
 
   var WHEEL_TERMS = [
     { term:"شفافية المتابعة", correct:"إظهار حالة الطلب والجهة المسؤولة والتوقيت المتوقع للمستفيد بوضوح.",
-      distract:["إخفاء تفاصيل الطلب لتفادي الأسئلة.","إرسال نفس الرد الجاهز لكل الاستفسارات."] },
+      distract:["إخفاء تفاصيل الطلب لتفادي الأسئلة.","إرسال نفس الرد الجاهز لكل الاستفسارات."],
+      hint:"فكّري في العكس: إخفاء المعلومات مش هو المقصود هنا." },
     { term:"الجهة المسؤولة", correct:"الجهة الحالية المكلّفة بمراجعة الطلب في هذه اللحظة.",
-      distract:["أي موظف يرد على الهاتف.","اسم النظام الإلكتروني المستخدم."] },
+      distract:["أي موظف يرد على الهاتف.","اسم النظام الإلكتروني المستخدم."],
+      hint:"مش أي حد بيرد على التليفون، لازم تكون جهة محددة بالاسم." },
     { term:"التوقيت المتوقع", correct:"تقدير واضح للمدة الزمنية حتى صدور القرار.",
-      distract:["تاريخ تقديم الطلب فقط.","موعد إجازة الموظف المسؤول."] },
+      distract:["تاريخ تقديم الطلب فقط.","موعد إجازة الموظف المسؤول."],
+      hint:"مش تاريخ التقديم ولا إجازة حد، ده عن معرفة إمتى القرار هيصدر." },
     { term:"حالة الطلب", correct:"المرحلة الحالية للطلب ضمن رحلته الكاملة حتى القرار.",
-      distract:["رقم الطلب المرجعي فقط.","اسم مقدّمة الطلب."] },
+      distract:["رقم الطلب المرجعي فقط.","اسم مقدّمة الطلب."],
+      hint:"فكّري في المرحلة اللي الطلب فيها دلوقتي، مش الرقم المرجعي بس." },
     { term:"ثقة أعلى", correct:"أثر مباشر لوضوح المتابعة على شعور المستفيد بالثقة في الجهة.",
-      distract:["مكافأة مادية تُمنح للمستفيد.","خصم إضافي على الخدمة."] },
+      distract:["مكافأة مادية تُمنح للمستفيد.","خصم إضافي على الخدمة."],
+      hint:"مش مكافأة أو خصم، ده إحساس بينتج من وضوح المتابعة." },
     { term:"متابعة أسهل", correct:"قدرة المستفيد على معرفة حالة طلبه دون تكرار الاتصال والاستفسار.",
-      distract:["إلغاء إمكانية الاستفسار نهائيًا.","تحويل المتابعة لجهة خارجية."] }
+      distract:["إلغاء إمكانية الاستفسار نهائيًا.","تحويل المتابعة لجهة خارجية."],
+      hint:"التقليل من التكرار والاتصال المستمر هو المقصود." }
   ];
 
   var QUIZ_JOURNEY = [
     { q:"أول حاجة عملتها نورة لما حسّت بالقلق من عدم المعرفة؟",
-      options:["فتحت شاشة تتبع الطلب في البوابة","سابت الموضوع تمامًا","قدّمت طلب شكوى فورًا"], correct:0 },
+      options:["فتحت شاشة تتبع الطلب في البوابة","سابت الموضوع تمامًا","قدّمت طلب شكوى فورًا"], correct:0,
+      hint:"هي بدأت بالخطوة الرسمية، مش استسلمت ولا اشتكت على طول." },
     { q:"لما لقت حالتها «قيد المراجعة»، إيه الخطوة الصح التالية؟",
-      options:["تتجاهل وتفترض الرفض","تتأكد من الجهة المسؤولة والتوقيت المتوقع الظاهرين","تلغي الطلب"], correct:1 },
+      options:["تتجاهل وتفترض الرفض","تتأكد من الجهة المسؤولة والتوقيت المتوقع الظاهرين","تلغي الطلب"], correct:1,
+      hint:"المعلومتين دول ظاهرين في نفس الشاشة — استخدميهم بدل ما تفترضي." },
     { q:"في الآخر، إيه اللي خلّى نورة تحس بثقة أكبر رغم إن القرار لسه ما صدرش؟",
-      options:["وضوح حالة الطلب والتوقيت المتوقع","وعد شفهي غير موثق","عدم وجود أي معلومة"], correct:0 }
+      options:["وضوح حالة الطلب والتوقيت المتوقع","وعد شفهي غير موثق","عدم وجود أي معلومة"], correct:0,
+      hint:"مش وعد شفهي ولا غياب معلومات، ده عن وضوح المعلومة نفسها." }
   ];
 
   var INSIGHT = {
@@ -510,16 +546,109 @@
       "تعقيد أكبر في الإجراءات",
       "تقليل عدد الموظفين"
     ],
-    correctIndex:0
+    correctIndex:0,
+    hint:"ارجعي للنص اللي فوق، الأثر مذكور فيه بالظبط."
   };
 
   // ---------- state ----------
   var S = load() || { stamps:{}, failed:{}, name:"", screen:"intro" };
   if(!S.failed) S.failed = {}; // upgrade older saved state
+  if(typeof S.soundOn !== "boolean") S.soundOn = false; // off by default — many phones may play together at the event
   function load(){ try{ return JSON.parse(localStorage.getItem("cxpp_state")||"null"); }catch(e){ return null; } }
   function save(){ try{ localStorage.setItem("cxpp_state", JSON.stringify(S)); }catch(e){} }
 
   var G = {}; // transient per-game runtime state
+
+  // ---------- audio (procedural — no external files/network) ----------
+  var audioCtx = null;
+  var musicGain = null;
+  var musicPadOscs = null;
+  var musicInterval = null;
+  var musicMelodyIdx = 0;
+  var MUSIC_MELODY = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880.00, 698.46]; // C E G E D F A F — simple uplifting loop
+
+  function ensureAudioCtx(){
+    try{
+      if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      if(audioCtx.state === "suspended"){ audioCtx.resume().catch(function(){}); }
+      return audioCtx;
+    }catch(e){ return null; }
+  }
+
+  function playTone(freq, duration, type, gainPeak, delay){
+    if(!S.soundOn) return;
+    var ctx = ensureAudioCtx();
+    if(!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(gainPeak, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + duration + 0.05);
+  }
+
+  function playCorrectSound(){
+    playTone(523.25, 0.14, "sine", 0.22, 0);
+    playTone(659.25, 0.14, "sine", 0.22, 0.10);
+    playTone(783.99, 0.22, "sine", 0.24, 0.20);
+  }
+
+  function playWrongSound(){
+    playTone(196.00, 0.18, "sawtooth", 0.16, 0);
+    playTone(146.83, 0.28, "sawtooth", 0.16, 0.12);
+  }
+
+  function startMusic(){
+    if(!S.soundOn || musicInterval) return;
+    var ctx = ensureAudioCtx();
+    if(!ctx) return;
+    musicGain = ctx.createGain();
+    musicGain.gain.value = 0.16;
+    musicGain.connect(ctx.destination);
+    musicPadOscs = [130.81, 196.00].map(function(f){
+      var osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      var g = ctx.createGain();
+      g.gain.value = 0.18;
+      osc.connect(g); g.connect(musicGain);
+      osc.start();
+      return osc;
+    });
+    musicInterval = setInterval(function(){
+      if(!S.soundOn){ stopMusic(); return; }
+      var ctx2 = ensureAudioCtx();
+      if(!ctx2 || !musicGain) return;
+      var freq = MUSIC_MELODY[musicMelodyIdx % MUSIC_MELODY.length];
+      musicMelodyIdx++;
+      var osc = ctx2.createOscillator();
+      var g = ctx2.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      var t0 = ctx2.currentTime;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(0.5, t0 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.9);
+      osc.connect(g); g.connect(musicGain);
+      osc.start(t0); osc.stop(t0 + 1);
+    }, 1000);
+  }
+
+  function stopMusic(){
+    if(musicInterval){ clearInterval(musicInterval); musicInterval = null; }
+    if(musicPadOscs){ musicPadOscs.forEach(function(o){ try{ o.stop(); }catch(e){} }); musicPadOscs = null; }
+    if(musicGain){ try{ musicGain.disconnect(); }catch(e){} musicGain = null; }
+  }
+
+  function setSoundOn(on){
+    S.soundOn = on; save();
+    if(on){ startMusic(); } else { stopMusic(); }
+    renderStrip();
+  }
 
   // ---------- leaderboard (Airtable via Cloudflare Worker) ----------
   var LEADERBOARD_API = "https://gadd-cx-leaderboard.innovationraces.workers.dev";
@@ -644,6 +773,9 @@
     }
     coinEl.dataset.prev = coins;
     coinEl.textContent = "🪙 " + coins;
+    var soundBtn = document.getElementById("strip-sound");
+    soundBtn.textContent = S.soundOn ? "🔊" : "🔇";
+    soundBtn.onclick = function(){ setSoundOn(!S.soundOn); };
   }
 
   function h(tag, attrs, children){
@@ -913,7 +1045,7 @@
   // Every station is a sequential MCQ quiz: lock on pick, highlight correct/
   // wrong, one attempt total — miss any question and the stamp is lost for
   // good (matches game_noura's mechanic exactly).
-  function freshQuizState(){ return { qIndex:0, locked:false, pickedIdx:null, correctCount:0, failed:false }; }
+  function freshQuizState(){ return { qIndex:0, locked:false, pickedIdx:null, correctCount:0, failed:false, hintShown:false }; }
 
   function renderQuizFail(el, quiz, msg){
     el.appendChild(h("div", {class:"spacer"}));
@@ -931,6 +1063,13 @@
     var item = quiz[qi];
     el.appendChild(h("p", {class:"eyebrow", text:"سؤال " + (qi+1) + " من " + quiz.length + " · محاولة واحدة"}));
     el.appendChild(h("div", {class:"card"}, [ h("h3", {class:"title-md", text:item.q, style:"font-size:16.5px;"}) ]));
+    if(item.hint){
+      if(st.hintShown){
+        el.appendChild(h("div", {class:"hint-box", text:"💡 " + item.hint}));
+      } else if(!st.locked){
+        el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاجة تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
+      }
+    }
     var list = h("div", {class:"choice-list"});
     item.options.forEach(function(opt, idx){
       var cls = "choice";
@@ -940,7 +1079,7 @@
       }
       var btn = h("button", {class:cls, text:opt, onclick: st.locked ? null : function(){
         st.locked = true; st.pickedIdx = idx;
-        if(idx === item.correct) st.correctCount++;
+        if(idx === item.correct){ st.correctCount++; playCorrectSound(); } else { playWrongSound(); }
         render();
       }});
       list.appendChild(btn);
@@ -948,7 +1087,7 @@
     el.appendChild(list);
     if(st.locked){
       el.appendChild(h("button", {class:"btn block", style:"margin-top:16px;", text: qi < quiz.length-1 ? "السؤال التالي" : "عرض النتيجة", onclick:function(){
-        if(qi < quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
+        if(qi < quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; st.hintShown=false; render(); }
         else {
           if(st.correctCount === quiz.length){ awardStamp(gameId); }
           else { markFailed(gameId); }
@@ -962,7 +1101,7 @@
     return terms.map(function(t){
       var opts = [t.correct].concat(t.distract);
       shuffle(opts);
-      return { q: "أي تعريف صح لمصطلح «" + t.term + "» في قضية نورة؟", options: opts, correct: opts.indexOf(t.correct) };
+      return { q: "أي تعريف صح لمصطلح «" + t.term + "» في قضية نورة؟", options: opts, correct: opts.indexOf(t.correct), hint: t.hint };
     });
   }
 
@@ -1022,7 +1161,7 @@
     if(!G.insight) G.insight = Object.assign(freshQuizState(), { revealed:false });
     if(S.stamps.insight){ return passScreen(el, {msg:"استوعبتِ الحل اللي بيريّح نورة."}); }
     var st = G.insight;
-    if(S.failed.insight){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }]); }
+    if(S.failed.insight){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex, hint:INSIGHT.hint }]); }
     if(!st.revealed){
       el.appendChild(h("div", {class:"card"}, [
         h("p", {class:"eyebrow", text:"بطاقة معلومة · " + INSIGHT.term}),
@@ -1031,13 +1170,13 @@
       el.appendChild(h("button", {class:"btn block", text:"فهمت، هاتي السؤال", onclick:function(){ st.revealed = true; render(); }}));
       return;
     }
-    renderQuizStep(el, "insight", [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex }], st);
+    renderQuizStep(el, "insight", [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex, hint:INSIGHT.hint }], st);
   };
 
   // ---------- GAME: Dr. Noura's case (status tracking) ----------
   VIEWS.game_noura = function(el){
     gameHeader(el, "🔍 قضية د. نورة");
-    if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null };
+    if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null, hintShown:false };
     if(S.stamps.noura){ return passScreen(el, {msg:"ساعدتِ د. نورة توضح لها حالة طلبها."}); }
     if(S.failed.noura){
       el.appendChild(h("div", {class:"spacer"}));
@@ -1090,6 +1229,13 @@
       var quiz = c.quiz[qi];
       el.appendChild(h("p", {class:"eyebrow", text:"سؤال " + (qi+1) + " من " + c.quiz.length + " · محاولة واحدة"}));
       el.appendChild(h("div", {class:"card"}, [ h("h3", {class:"title-md", text:quiz.q, style:"font-size:16.5px;"}) ]));
+      if(quiz.hint){
+        if(st.hintShown){
+          el.appendChild(h("div", {class:"hint-box", text:"💡 " + quiz.hint}));
+        } else if(!st.locked){
+          el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاجة تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
+        }
+      }
       var list = h("div", {class:"choice-list"});
       quiz.options.forEach(function(opt, idx){
         var cls = "choice";
@@ -1099,7 +1245,7 @@
         }
         var btn = h("button", {class:cls, text:opt, onclick: st.locked ? null : function(){
           st.locked = true; st.pickedIdx = idx;
-          if(idx === quiz.correct) st.correctCount++;
+          if(idx === quiz.correct){ st.correctCount++; playCorrectSound(); } else { playWrongSound(); }
           render();
         }});
         list.appendChild(btn);
@@ -1107,7 +1253,7 @@
       el.appendChild(list);
       if(st.locked){
         el.appendChild(h("button", {class:"btn block", style:"margin-top:16px;", text: qi < c.quiz.length-1 ? "السؤال التالي" : "عرض النتيجة", onclick:function(){
-          if(qi < c.quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; render(); }
+          if(qi < c.quiz.length - 1){ st.qIndex++; st.locked=false; st.pickedIdx=null; st.hintShown=false; render(); }
           else {
             if(st.correctCount === c.quiz.length){ awardStamp("noura"); }
             else { markFailed("noura"); }
@@ -1236,6 +1382,16 @@
   }
 
   render();
+
+  // ---------- unlock audio on first user interaction (browser autoplay policy) ----------
+  function unlockAudioOnce(){
+    ensureAudioCtx();
+    if(S.soundOn) startMusic();
+    document.removeEventListener("click", unlockAudioOnce);
+    document.removeEventListener("touchstart", unlockAudioOnce);
+  }
+  document.addEventListener("click", unlockAudioOnce);
+  document.addEventListener("touchstart", unlockAudioOnce);
 })();
 </script>
 </body>
