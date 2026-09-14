@@ -711,6 +711,7 @@
 
   function resetGame(){
     try{ localStorage.removeItem("cxpp_state"); }catch(e){}
+    try{ localStorage.removeItem("cxpp_session"); }catch(e){} // fresh session id per playthrough, so a new player on the same device/tab gets their own leaderboard record instead of being silently deduped against the previous player's session
     S = { stamps:{}, failed:{}, name:"", screen:"intro" };
     G = {};
     save();
@@ -851,8 +852,8 @@
     el.appendChild(h("p", {text:"هتظهر شخصيتك في جواز تجربتك وشهادتك."}));
     var row = h("div", {class:"char-select-row"});
     [
-      { role:"دكتور", emoji:"👨‍⚕️" },
-      { role:"دكتورة", emoji:"👩‍⚕️" }
+      { role:"عالم", emoji:"👨‍🔬" },
+      { role:"عالمة", emoji:"👩‍🔬" }
     ].forEach(function(c){
       var card = h("button", {class:"char-card", onclick:function(){
         S.playerRole = c.role; S.playerEmoji = c.emoji; save();
