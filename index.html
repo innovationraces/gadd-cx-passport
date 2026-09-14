@@ -75,12 +75,12 @@
     flex-shrink:0;
   }
   .quit-btn{
-    display:flex; align-items:center; gap:5px;
-    background: transparent; border:1px solid var(--line);
-    color:var(--text-dim); font-family:'Tajawal'; font-weight:700;
-    font-size:11.5px; border-radius:999px; padding:5px 12px 5px 10px;
+    width:32px; height:32px; border-radius:50%; padding:0; flex-shrink:0;
+    background: rgba(255,111,92,0.14); border:1.5px solid var(--warn);
+    color:var(--warn); font-size:15px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
   }
-  .quit-btn:active{ transform:scale(.95); }
+  .quit-btn:active{ transform:scale(.88); }
 
   /* ---------- passport strip ---------- */
   #strip{
@@ -419,7 +419,7 @@
 
 <div id="phone">
   <div id="quitbar">
-    <button id="quit-btn" class="quit-btn">✕ إنهاء اللعبة</button>
+    <button id="quit-btn" class="quit-btn" aria-label="إنهاء اللعبة">✕</button>
   </div>
   <div id="strip" hidden>
     <div class="count" id="strip-count">0 / 7</div>
@@ -1436,10 +1436,9 @@
   document.addEventListener("touchstart", unlockAudioOnce);
 
   // ---------- persistent quit button (every screen) ----------
+  // no confirm() dialog — tap ends the game right away
   document.getElementById("quit-btn").onclick = function(){
-    if(confirm("متأكد إنك عايز تنهي اللعبة؟ هيتم مسح تقدمك الحالي والرجوع للبداية.")){
-      resetGame();
-    }
+    resetGame();
   };
 })();
 </script>
