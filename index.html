@@ -158,6 +158,23 @@
     width:64px; height:64px; margin-bottom:16px;
     filter: drop-shadow(0 6px 16px rgba(0,0,0,.4));
   }
+  .avatar-hero{
+    width:160px; height:160px; margin-bottom:0;
+    filter: drop-shadow(0 12px 28px rgba(0,0,0,.45));
+  }
+  .avatar-hero-sm{
+    width:112px; height:112px; margin-bottom:0;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,.4));
+  }
+  .speak-btn{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background: var(--panel-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:var(--text); padding:0;
+    box-shadow:none; transition: transform .15s ease, border-color .2s;
+  }
+  .speak-btn:active{ transform:scale(.9); }
+  .speak-btn.speaking{ border-color: var(--accent); }
   .quote-bubble{
     background: var(--panel);
     border:1px solid var(--line);
@@ -491,12 +508,12 @@
       return id;
     }catch(e){ return "s" + Date.now(); }
   }
-  function submitToLeaderboard(name, coins){
+  function submitToLeaderboard(name, stamps, coins){
     if(S.leaderboardSubmitted) return;
     fetch(LEADERBOARD_API + "/submit", {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ name: name, coins: coins, sessionId: getSessionId() })
+      body: JSON.stringify({ name: name, stamps: stamps, coins: coins, sessionId: getSessionId() })
     }).then(function(){ S.leaderboardSubmitted = true; save(); }).catch(function(){});
   }
 
@@ -511,6 +528,29 @@
     if(extra) Object.assign(S, extra);
     save();
     render();
+  }
+
+  function resetGame(){
+    try{ localStorage.removeItem("cxpp_state"); }catch(e){}
+    S = { stamps:{}, failed:{}, name:"", screen:"intro" };
+    G = {};
+    save();
+    render();
+  }
+
+  function speakArabic(text){
+    try{
+      if(!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text.replace(/\n/g, " "));
+      u.lang = "ar-SA";
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function speakBtn(text){
+    return h("button", {class:"speak-btn", "aria-label":"استمعي", onclick:function(){ speakArabic(text); }, text:"🔊"});
   }
 
   var COINS_PER_STAMP = 20;
@@ -573,7 +613,9 @@
 
   VIEWS.intro = function(el){
     el.appendChild(h("div", {class:"spacer"}));
-    el.appendChild(h("div", {class:"intro-badge", text:"🛂"}));
+    var heroWrap = h("div", {style:"display:flex; justify-content:center; margin-bottom:20px;"});
+    heroWrap.appendChild(avatarNouraSvg("avatar-hero"));
+    el.appendChild(heroWrap);
     el.appendChild(h("p", {class:"eyebrow", text:"اليوم العالمي لتجربة العميل · GADD"}));
     el.appendChild(h("h1", {class:"title-xl", text:"جواز تجربة العميل الرقمي"}));
     el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيشي مشكلتها بنفسك عبر <strong class='hl'>7 محطات</strong>، واجمعي كل الأختام والعملات لتدخلي قرعة الجوائز."}));
@@ -605,7 +647,10 @@
     wrap.appendChild(bar);
 
     var fill = h("div", {class:"beat-fill"});
-    fill.appendChild(avatarNouraSvg());
+    var avatarRow = h("div", {style:"display:flex; justify-content:space-between; align-items:flex-end;"});
+    avatarRow.appendChild(avatarNouraSvg());
+    avatarRow.appendChild(speakBtn(beat.text));
+    fill.appendChild(avatarRow);
     var bubble = h("div", {class:"quote-bubble"});
     bubble.style.borderColor = moodColor;
     beat.text.split("\n").forEach(function(line){ bubble.appendChild(h("div", {text:line})); });
@@ -633,9 +678,9 @@
     return wrap.firstChild;
   }
 
-  function avatarNouraSvg(){
+  function avatarNouraSvg(extraClass){
     var wrap = document.createElement("div");
-    wrap.innerHTML = '<svg class="avatar" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+    wrap.innerHTML = '<svg class="avatar' + (extraClass ? " " + extraClass : "") + '" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">'+
       '<defs>'+
       '<radialGradient id="bgGrad" cx="35%" cy="30%" r="75%">'+
       '<stop offset="0%" stop-color="#17493a"/>'+
@@ -684,6 +729,9 @@
   VIEWS.hub = function(el){
     if(allDone()){
       el.appendChild(h("div", {class:"spacer"}));
+      var heroWrapDone = h("div", {style:"display:flex; justify-content:center;"});
+      heroWrapDone.appendChild(avatarNouraSvg("avatar-hero-sm"));
+      el.appendChild(heroWrapDone);
       el.appendChild(h("div", {class:"badge-medal", text:"🏅"}));
       el.appendChild(h("div", {class:"badge-name", text:"بادج: مستكشفة تجربة العميل"}));
       el.appendChild(h("div", {class:"coin-total", text:"🪙 إجمالي عملاتك: " + (S.coins||0)}));
@@ -697,11 +745,31 @@
 
     if(journeyClosed()){
       el.appendChild(h("div", {class:"spacer"}));
+      var heroWrapClosed = h("div", {style:"display:flex; justify-content:center; margin-bottom:6px;"});
+      heroWrapClosed.appendChild(avatarNouraSvg("avatar-hero-sm"));
+      el.appendChild(heroWrapClosed);
       el.appendChild(h("div", {class:"result-badge", text:"📪", style:"filter:grayscale(.4);"}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"انتهت رحلتك"}));
       el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo'; font-size:17px;", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
       el.appendChild(h("p", {class:"center-text", text:"عدّيتِ على كل المحطات، بس محتاجة كل الأختام السبعة عشان تدخلي قرعة الجوائز. جربي تاني في مرة قادمة!"}));
-      el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+
+      if(!S.registered){
+        el.appendChild(h("p", {text:"اكتبي اسمك عشان نتيجتك تتسجل في لوحة الصدارة:"}));
+        var closedInput = h("input", {type:"text", id:"closedName", placeholder:"اسمك بالكامل"});
+        closedInput.value = S.name || "";
+        el.appendChild(closedInput);
+        el.appendChild(h("button", {class:"btn block", text:"تسجيل نتيجتي", onclick:function(){
+          var nm = closedInput.value.trim();
+          if(!nm){ closedInput.style.borderColor = "var(--warn)"; return; }
+          S.name = nm; S.registered = true; save();
+          render();
+        }}));
+      } else {
+        submitToLeaderboard(S.name, stampCount(), S.coins || 0);
+        el.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"تم تسجيل نتيجتك في لوحة الصدارة."}));
+        el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+        el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"ابدأ رحلة جديدة", onclick: resetGame}));
+      }
       el.appendChild(h("div", {class:"spacer"}));
       return;
     }
@@ -901,7 +969,10 @@
 
     if(st.step === 0){
       el.appendChild(h("p", {class:"eyebrow", text:"المشكلة"}));
-      el.appendChild(avatarNouraSvg());
+      var avatarRow0 = h("div", {style:"display:flex; justify-content:space-between; align-items:flex-end;"});
+      avatarRow0.appendChild(avatarNouraSvg());
+      avatarRow0.appendChild(speakBtn(c.problem));
+      el.appendChild(avatarRow0);
       el.appendChild(h("div", {class:"card"}, [
         h("h3", {class:"title-md", text:c.name + " · " + c.role, style:"font-size:17px;"}),
         h("p", {text: c.problem, style:"color:var(--text);"})
@@ -979,7 +1050,7 @@
         render();
       }}));
     } else {
-      submitToLeaderboard(S.name, S.coins || 0);
+      submitToLeaderboard(S.name, stampCount(), S.coins || 0);
       el.appendChild(h("div", {class:"result-badge", text:"🏆"}));
       el.appendChild(h("h3", {class:"title-md center-text", text:"شهادتك جاهزة!"}));
       var canvas = h("canvas", {id:"certificate", width:"640", height:"400"});
@@ -988,13 +1059,14 @@
       el.appendChild(h("button", {class:"btn block", text:"احفظي شهادتك", style:"margin-top:12px;", onclick: saveCertificate}));
       el.appendChild(h("p", {class:"center-text", style:"margin-top:12px;", text:"تم تسجيل اسمك في لوحة الصدارة تلقائيًا. احفظي الشهادة وأظهريها في نقطة التسجيل للدخول في سحب الجوائز."}));
       el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
+      el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"ابدأ رحلة جديدة", onclick: resetGame}));
     }
   };
 
   // ---------- LEADERBOARD ----------
   VIEWS.leaderboard = function(el){
     gameHeader(el, "🏆 لوحة الصدارة");
-    el.appendChild(h("p", {text:"آخر اللي كملوا رحلتهم وجمعوا الأختام السبعة:"}));
+    el.appendChild(h("p", {text:"كل اللي لعبوا، مرتبين حسب عدد الأختام:"}));
     var list = h("div", {id:"lb-list"});
     list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"جارِ التحميل..."}));
     el.appendChild(list);
@@ -1005,13 +1077,13 @@
         list.innerHTML = "";
         var entries = (data && data.leaderboard) || [];
         if(entries.length === 0){
-          list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش خلص الرحلة لسه... يمكن تكوني إنتِ الأولى!"}));
+          list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش لعب لسه... يمكن تكوني إنتِ الأولى!"}));
           return;
         }
         entries.forEach(function(e, i){
           var row = h("div", {class:"answered-q"});
           row.appendChild(h("span", {text: (i+1) + ". " + e.name}));
-          row.appendChild(h("b", {text: "🪙 " + e.coins}));
+          row.appendChild(h("b", {text: "🏅 " + (e.stamps||0) + "/" + GAMES.length + "  ·  🪙 " + e.coins}));
           list.appendChild(row);
         });
       })
