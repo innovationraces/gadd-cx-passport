@@ -67,6 +67,21 @@
     flex-direction:column;
   }
 
+  /* ---------- persistent quit bar ---------- */
+  #quitbar{
+    display:flex;
+    justify-content:flex-end;
+    padding: 10px 18px 0;
+    flex-shrink:0;
+  }
+  .quit-btn{
+    display:flex; align-items:center; gap:5px;
+    background: transparent; border:1px solid var(--line);
+    color:var(--text-dim); font-family:'Tajawal'; font-weight:700;
+    font-size:11.5px; border-radius:999px; padding:5px 12px 5px 10px;
+  }
+  .quit-btn:active{ transform:scale(.95); }
+
   /* ---------- passport strip ---------- */
   #strip{
     display:flex;
@@ -403,6 +418,9 @@
 <body>
 
 <div id="phone">
+  <div id="quitbar">
+    <button id="quit-btn" class="quit-btn">✕ إنهاء اللعبة</button>
+  </div>
   <div id="strip" hidden>
     <div class="count" id="strip-count">0 / 7</div>
     <div class="stamps" id="strip-dots"></div>
@@ -421,7 +439,7 @@
     { id:"expect",  icon:"📦", label:"توقع أم واقع؟" },
     { id:"redtape", icon:"📋", label:"ترتيب رحلة الطلب" },
     { id:"wheel",   icon:"🎡", label:"عجلة مصطلحات نورة" },
-    { id:"journey", icon:"🚶", label:"عيشي قلق نورة" },
+    { id:"journey", icon:"🚶", label:"عيش قلق نورة" },
     { id:"insight", icon:"💡", label:"لحظة الحل" },
     { id:"noura",   icon:"🔍", label:"قضية د. نورة" }
   ];
@@ -439,7 +457,7 @@
     owner:"اللجنة العلمية",
     eta:"خلال 2-4 أسابيع",
     quiz:[
-      { q:"أين وصل طلب د. نورة الآن؟", options:["قيد المراجعة","تم الرفض نهائيًا","لم يُستلم بعد"], correct:0, hint:"شوفي شاشة تتبع الطلب اللي ظهرتلك قبل السؤال، فيها الحالة الحالية." },
+      { q:"أين وصل طلب د. نورة الآن؟", options:["قيد المراجعة","تم الرفض نهائيًا","لم يُستلم بعد"], correct:0, hint:"شوف شاشة تتبع الطلب اللي ظهرتلك قبل السؤال، فيها الحالة الحالية." },
       { q:"مين الجهة المسؤولة عن مراجعته حاليًا؟", options:["قسم تقنية المعلومات","اللجنة العلمية","الشؤون المالية"], correct:1, hint:"الاسم مكتوب بوضوح في قسم «الجهة المسؤولة الآن»." },
       { q:"متى يُتوقع صدور القرار؟", options:["خلال 24 ساعة","غير معروف نهائيًا","خلال 2-4 أسابيع"], correct:2, hint:"التوقيت المتوقع موجود في نفس الشاشة اللي فاتت." }
     ]
@@ -462,22 +480,22 @@
   var QUIZ_MAZE = [
     { q:"نورة عايزة تعرف حالة طلبها لأول مرة، تدخل فين؟",
       options:["تبعت رسالة على السوشيال ميديا","تتصل بمركز الاتصال العام","تفتح تتبّع الطلب في البوابة الرقمية"], correct:2,
-      hint:"فكّري في المكان الرسمي اللي بيوريلك حالة الطلب مباشرة، مش قنوات عامة زي السوشيال ميديا أو الاتصال." },
+      hint:"فكّر في المكان الرسمي اللي بيوريلك حالة الطلب مباشرة، مش قنوات عامة زي السوشيال ميديا أو الاتصال." },
     { q:"البوابة موضّح فيها «قيد المراجعة» مع اسم الجهة المسؤولة، تعمل إيه بعد كده؟",
       options:["تتأكد من التوقيت المتوقع الظاهر في نفس الشاشة","تتجاهل التفاصيل وتقفل الصفحة","تدوّر على رقم عشوائي"], correct:0,
-      hint:"الشاشة نفسها فيها كل المعلومات اللي محتاجاها — مفيش داعي تسيبيها من غير ما تكمّلي القراءة." },
+      hint:"الشاشة نفسها فيها كل المعلومات اللي محتاجها — مفيش داعي تسيبها من غير ما تكمّل القراءة." },
     { q:"عايزة تعرف امتى المفروض يصدر القرار، أدق مصدر إيه؟",
       options:["تخمين شخصي","التوقيت المتوقع الظاهر في شاشة تتبع الطلب","سؤال زميلة في قسم تاني"], correct:1,
       hint:"المصدر الرسمي دايمًا أدق من التخمين أو سؤال حد مش مسؤول عن طلبك." },
     { q:"لو حسّت إن فيه تأخير عدّى التوقيت المعلن؟",
       options:["تتجاهل الموضوع","تقدّم طلب جديد من الأول","تتواصل مباشرة مع الجهة المسؤولة المذكورة وتستفسر"], correct:2,
-      hint:"البوابة قالتلك مين الجهة المسؤولة بالاسم — استخدمي المعلومة دي بدل ما تبدئي من الصفر." }
+      hint:"البوابة قالتلك مين الجهة المسؤولة بالاسم — استخدم المعلومة دي بدل ما تبدأ من الصفر." }
   ];
 
   var QUIZ_EXPECT = [
     { q:"توقعت نورة ردًا خلال أسبوع من تقديم الطلب، لكن الواقع إن الرد اتأخر لشهر كامل من غير أي تحديث. هل الواقع طابق توقعها؟",
       options:["أيوه طابق","لأ ما طابقش"], correct:1,
-      hint:"قارني المدة المتوقعة بالمدة الفعلية اللي حصلت — فيه فرق واضح هنا." },
+      hint:"قارن المدة المتوقعة بالمدة الفعلية اللي حصلت — فيه فرق واضح هنا." },
     { q:"توقعت إنها تلاقي اسم الجهة المسؤولة موضّح في مكان واحد، ولقت فعلاً اسم اللجنة العلمية واضح في شاشة تتبع الطلب. هل طابق توقعها؟",
       options:["أيوه طابق","لأ ما طابقش"], correct:0,
       hint:"هنا اللي حصل فعلاً هو اللي كانت نورة مستنياه بالظبط." },
@@ -492,10 +510,10 @@
   var QUIZ_REDTAPE = [
     { q:"بعد ما نورة تقدّم طلبها، إيه أول حالة تظهر في تتبع الطلب؟",
       options:["القرار","تم الاستلام","تحت التقييم"], correct:1,
-      hint:"فكّري في أول خطوة منطقية بعد ما الطلب يوصل." },
+      hint:"فكّر في أول خطوة منطقية بعد ما الطلب يوصل." },
     { q:"بعد «تم الاستلام»، الحالة اللي بعدها إيه؟",
       options:["قيد المراجعة","القرار","لم يُستلم"], correct:0,
-      hint:"ارجعي لشاشة تتبع الطلب اللي شفتيها قبل كده، الترتيب موضّح فيها." },
+      hint:"ارجع لشاشة تتبع الطلب اللي شفتها قبل كده، الترتيب موضّح فيها." },
     { q:"بعد «قيد المراجعة»، الخطوة اللي بعدها؟",
       options:["تم الاستلام","تحت التقييم","القرار"], correct:1,
       hint:"الترتيب زي ما ظهر بالظبط: استلام، مراجعة، تقييم، قرار." },
@@ -507,7 +525,7 @@
   var WHEEL_TERMS = [
     { term:"شفافية المتابعة", correct:"إظهار حالة الطلب والجهة المسؤولة والتوقيت المتوقع للمستفيد بوضوح.",
       distract:["إخفاء تفاصيل الطلب لتفادي الأسئلة.","إرسال نفس الرد الجاهز لكل الاستفسارات."],
-      hint:"فكّري في العكس: إخفاء المعلومات مش هو المقصود هنا." },
+      hint:"فكّر في العكس: إخفاء المعلومات مش هو المقصود هنا." },
     { term:"الجهة المسؤولة", correct:"الجهة الحالية المكلّفة بمراجعة الطلب في هذه اللحظة.",
       distract:["أي موظف يرد على الهاتف.","اسم النظام الإلكتروني المستخدم."],
       hint:"مش أي حد بيرد على التليفون، لازم تكون جهة محددة بالاسم." },
@@ -516,7 +534,7 @@
       hint:"مش تاريخ التقديم ولا إجازة حد، ده عن معرفة إمتى القرار هيصدر." },
     { term:"حالة الطلب", correct:"المرحلة الحالية للطلب ضمن رحلته الكاملة حتى القرار.",
       distract:["رقم الطلب المرجعي فقط.","اسم مقدّمة الطلب."],
-      hint:"فكّري في المرحلة اللي الطلب فيها دلوقتي، مش الرقم المرجعي بس." },
+      hint:"فكّر في المرحلة اللي الطلب فيها دلوقتي، مش الرقم المرجعي بس." },
     { term:"ثقة أعلى", correct:"أثر مباشر لوضوح المتابعة على شعور المستفيد بالثقة في الجهة.",
       distract:["مكافأة مادية تُمنح للمستفيد.","خصم إضافي على الخدمة."],
       hint:"مش مكافأة أو خصم، ده إحساس بينتج من وضوح المتابعة." },
@@ -531,7 +549,7 @@
       hint:"هي بدأت بالخطوة الرسمية، مش استسلمت ولا اشتكت على طول." },
     { q:"لما لقت حالتها «قيد المراجعة»، إيه الخطوة الصح التالية؟",
       options:["تتجاهل وتفترض الرفض","تتأكد من الجهة المسؤولة والتوقيت المتوقع الظاهرين","تلغي الطلب"], correct:1,
-      hint:"المعلومتين دول ظاهرين في نفس الشاشة — استخدميهم بدل ما تفترضي." },
+      hint:"المعلومتين دول ظاهرين في نفس الشاشة — استخدمهم بدل ما تفترض." },
     { q:"في الآخر، إيه اللي خلّى نورة تحس بثقة أكبر رغم إن القرار لسه ما صدرش؟",
       options:["وضوح حالة الطلب والتوقيت المتوقع","وعد شفهي غير موثق","عدم وجود أي معلومة"], correct:0,
       hint:"مش وعد شفهي ولا غياب معلومات، ده عن وضوح المعلومة نفسها." }
@@ -547,7 +565,7 @@
       "تقليل عدد الموظفين"
     ],
     correctIndex:0,
-    hint:"ارجعي للنص اللي فوق، الأثر مذكور فيه بالظبط."
+    hint:"ارجع للنص اللي فوق، الأثر مذكور فيه بالظبط."
   };
 
   // ---------- state ----------
@@ -802,7 +820,7 @@
     el.appendChild(heroWrap);
     el.appendChild(h("p", {class:"eyebrow", text:"اليوم العالمي لتجربة العميل · GADD"}));
     el.appendChild(h("h1", {class:"title-xl", text:"جواز تجربة العميل الرقمي"}));
-    el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيشي مشكلتها بنفسك عبر <strong class='hl'>7 بوابات</strong>، واجمعي كل الأختام والعملات لتدخلي قرعة الجوائز."}));
+    el.appendChild(h("p", {html:"قضية واحدة حقيقية... رحلة د. نورة مع طلبها. عيش مشكلتها بنفسك عبر <strong class='hl'>7 بوابات</strong>، واجمع كل الأختام والعملات لتدخل قرعة الجوائز."}));
     var nameWrap = h("div", {});
     var input = h("input", {type:"text", id:"nameInput", placeholder:"اكتب اسمك (اختياري الآن)"});
     input.value = S.name || "";
@@ -818,8 +836,8 @@
 
   VIEWS.character = function(el){
     el.appendChild(h("div", {class:"spacer"}));
-    el.appendChild(h("p", {class:"eyebrow", text:"قبل ما تبدئي"}));
-    el.appendChild(h("h2", {class:"title-md", text:"اختاري شخصيتك في الرحلة"}));
+    el.appendChild(h("p", {class:"eyebrow", text:"قبل ما تبدأ"}));
+    el.appendChild(h("h2", {class:"title-md", text:"اختار شخصيتك في الرحلة"}));
     el.appendChild(h("p", {text:"هتظهر شخصيتك في جواز تجربتك وشهادتك."}));
     var row = h("div", {class:"char-select-row"});
     [
@@ -939,10 +957,10 @@
       heroWrapDone.appendChild(avatarNouraSvg("avatar-hero-sm"));
       el.appendChild(heroWrapDone);
       el.appendChild(h("div", {class:"badge-medal", text:"🏅"}));
-      el.appendChild(h("div", {class:"badge-name", text:"بادج: مستكشفة تجربة العميل"}));
+      el.appendChild(h("div", {class:"badge-name", text:"بادج: مستكشف تجربة العميل"}));
       el.appendChild(h("div", {class:"coin-total", text:"🪙 إجمالي عملاتك: " + (S.coins||0)}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"اكتملت رحلتك!"}));
-      el.appendChild(h("p", {class:"center-text", text:"جمعت الأختام السبعة كلها وفزتِ بالبادج. جاهزة تدخلي قرعة الجوائز؟"}));
+      el.appendChild(h("p", {class:"center-text", text:"جمعت الأختام السبعة كلها وفزت بالبادج. جاهز تدخل قرعة الجوائز؟"}));
       el.appendChild(h("button", {class:"btn block", text:"إنهاء الرحلة والتسجيل", onclick:function(){ go("finish"); }}));
       el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
       el.appendChild(h("div", {class:"spacer"}));
@@ -957,10 +975,10 @@
       el.appendChild(h("div", {class:"result-badge", text:"📪", style:"filter:grayscale(.4);"}));
       el.appendChild(h("h2", {class:"title-md center-text", text:"انتهت رحلتك"}));
       el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo'; font-size:17px;", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
-      el.appendChild(h("p", {class:"center-text", text:"عدّيتِ على كل البوابات، بس محتاجة كل الأختام السبعة عشان تدخلي قرعة الجوائز. جربي تاني في مرة قادمة!"}));
+      el.appendChild(h("p", {class:"center-text", text:"عدّيت على كل البوابات، بس محتاج كل الأختام السبعة عشان تدخل قرعة الجوائز. جرّب تاني في مرة قادمة!"}));
 
       if(!S.registered){
-        el.appendChild(h("p", {text:"اكتبي اسمك عشان نتيجتك تتسجل في لوحة الصدارة:"}));
+        el.appendChild(h("p", {text:"اكتب اسمك عشان نتيجتك تتسجل في لوحة الصدارة:"}));
         var closedInput = h("input", {type:"text", id:"closedName", placeholder:"اسمك بالكامل"});
         closedInput.value = S.name || "";
         el.appendChild(closedInput);
@@ -981,7 +999,7 @@
     }
 
     el.appendChild(h("p", {class:"eyebrow", text: S.name ? ("أهلًا " + (S.playerRole ? S.playerRole + " " : "") + S.name) : "رحلتك"}));
-    el.appendChild(h("h2", {class:"title-md", text:"اختاري بوابة وابدئي"}));
+    el.appendChild(h("h2", {class:"title-md", text:"اختار بوابة وابدأ"}));
 
     var orbitWrap = h("div", {id:"orbit-wrap"});
     var orbit = h("div", {id:"orbit"});
@@ -1017,7 +1035,7 @@
     });
     orbitWrap.appendChild(orbit);
     el.appendChild(orbitWrap);
-    el.appendChild(h("p", {class:"center-text", text:"البوابات بتتفتح بالترتيب — خلّصي كل بوابة عشان تتفتح اللي بعدها."}));
+    el.appendChild(h("p", {class:"center-text", text:"البوابات بتتفتح بالترتيب — خلّص كل بوابة عشان تتفتح اللي بعدها."}));
     el.appendChild(h("button", {class:"btn secondary block", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
   };
 
@@ -1034,8 +1052,8 @@
   function passScreen(el, opts){
     el.appendChild(h("div", {class:"spacer"}));
     el.appendChild(h("div", {class:"result-badge", text:"🏅"}));
-    el.appendChild(h("h2", {class:"title-md center-text", text:"حصلتِ على ختم!"}));
-    el.appendChild(h("p", {class:"center-text", text: opts.msg || "أحسنتِ، بوابة جديدة اكتملت."}));
+    el.appendChild(h("h2", {class:"title-md center-text", text:"حصلت على ختم!"}));
+    el.appendChild(h("p", {class:"center-text", text: opts.msg || "أحسنت، بوابة جديدة اكتملت."}));
     el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text:"🪙 +"+COINS_PER_STAMP+" عملة مع هذا الختم"}));
     el.appendChild(h("button", {class:"btn block", text:"العودة للجواز", onclick:function(){ go("hub"); }}));
     el.appendChild(h("div", {class:"spacer"}));
@@ -1067,7 +1085,7 @@
       if(st.hintShown){
         el.appendChild(h("div", {class:"hint-box", text:"💡 " + item.hint}));
       } else if(!st.locked){
-        el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاجة تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
+        el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاج تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
       }
     }
     var list = h("div", {class:"choice-list"});
@@ -1109,7 +1127,7 @@
   VIEWS.game_maze = function(el){
     gameHeader(el, "🧭 وين أدخل أتابع؟");
     if(!G.maze) G.maze = freshQuizState();
-    if(S.stamps.maze){ return passScreen(el, {msg:"عرفتِ بالظبط فين تتابعي حالة طلب زي طلب نورة."}); }
+    if(S.stamps.maze){ return passScreen(el, {msg:"عرفت بالظبط فين تتابع حالة طلب زي طلب نورة."}); }
     var st = G.maze;
     if(S.failed.maze){ return renderQuizFail(el, QUIZ_MAZE); }
     renderQuizStep(el, "maze", QUIZ_MAZE, st);
@@ -1119,7 +1137,7 @@
   VIEWS.game_expect = function(el){
     gameHeader(el, "📦 توقع أم واقع؟");
     if(!G.expect) G.expect = freshQuizState();
-    if(S.stamps.expect){ return passScreen(el, {msg:"قرأتِ الفجوة بين توقعات نورة وواقعها بدقة."}); }
+    if(S.stamps.expect){ return passScreen(el, {msg:"قرأت الفجوة بين توقعات نورة وواقعها بدقة."}); }
     var st = G.expect;
     if(S.failed.expect){ return renderQuizFail(el, QUIZ_EXPECT); }
     renderQuizStep(el, "expect", QUIZ_EXPECT, st);
@@ -1129,7 +1147,7 @@
   VIEWS.game_redtape = function(el){
     gameHeader(el, "📋 ترتيب رحلة الطلب");
     if(!G.redtape) G.redtape = freshQuizState();
-    if(S.stamps.redtape){ return passScreen(el, {msg:"رتّبتِ مراحل طلب نورة الأربعة صح."}); }
+    if(S.stamps.redtape){ return passScreen(el, {msg:"رتّبت مراحل طلب نورة الأربعة صح."}); }
     var st = G.redtape;
     if(S.failed.redtape){ return renderQuizFail(el, QUIZ_REDTAPE); }
     renderQuizStep(el, "redtape", QUIZ_REDTAPE, st);
@@ -1139,7 +1157,7 @@
   VIEWS.game_wheel = function(el){
     gameHeader(el, "🎡 عجلة مصطلحات نورة");
     if(!G.wheel) G.wheel = Object.assign(freshQuizState(), { quiz: buildTermQuiz(WHEEL_TERMS) });
-    if(S.stamps.wheel){ return passScreen(el, {msg:"عرفتِ مصطلحات حل مشكلة نورة صح."}); }
+    if(S.stamps.wheel){ return passScreen(el, {msg:"عرفت مصطلحات حل مشكلة نورة صح."}); }
     var st = G.wheel;
     if(S.failed.wheel){ return renderQuizFail(el, st.quiz); }
     renderQuizStep(el, "wheel", st.quiz, st);
@@ -1147,9 +1165,9 @@
 
   // ---------- GAME: walk in Noura's shoes ----------
   VIEWS.game_journey = function(el){
-    gameHeader(el, "🚶 عيشي قلق نورة");
+    gameHeader(el, "🚶 عيش قلق نورة");
     if(!G.journey) G.journey = freshQuizState();
-    if(S.stamps.journey){ return passScreen(el, {msg:"عايشتِ رحلة قلق نورة خطوة بخطوة."}); }
+    if(S.stamps.journey){ return passScreen(el, {msg:"عايشت رحلة قلق نورة خطوة بخطوة."}); }
     var st = G.journey;
     if(S.failed.journey){ return renderQuizFail(el, QUIZ_JOURNEY); }
     renderQuizStep(el, "journey", QUIZ_JOURNEY, st);
@@ -1159,7 +1177,7 @@
   VIEWS.game_insight = function(el){
     gameHeader(el, "💡 لحظة الحل");
     if(!G.insight) G.insight = Object.assign(freshQuizState(), { revealed:false });
-    if(S.stamps.insight){ return passScreen(el, {msg:"استوعبتِ الحل اللي بيريّح نورة."}); }
+    if(S.stamps.insight){ return passScreen(el, {msg:"استوعبت الحل اللي بيريّح نورة."}); }
     var st = G.insight;
     if(S.failed.insight){ return renderQuizFail(el, [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex, hint:INSIGHT.hint }]); }
     if(!st.revealed){
@@ -1167,7 +1185,7 @@
         h("p", {class:"eyebrow", text:"بطاقة معلومة · " + INSIGHT.term}),
         h("p", {text: INSIGHT.text, style:"color:var(--text);"})
       ]));
-      el.appendChild(h("button", {class:"btn block", text:"فهمت، هاتي السؤال", onclick:function(){ st.revealed = true; render(); }}));
+      el.appendChild(h("button", {class:"btn block", text:"فهمت، هات السؤال", onclick:function(){ st.revealed = true; render(); }}));
       return;
     }
     renderQuizStep(el, "insight", [{ q:INSIGHT.q, options:INSIGHT.options, correct:INSIGHT.correctIndex, hint:INSIGHT.hint }], st);
@@ -1177,7 +1195,7 @@
   VIEWS.game_noura = function(el){
     gameHeader(el, "🔍 قضية د. نورة");
     if(!G.noura) G.noura = { step:0, qIndex:0, correctCount:0, locked:false, pickedIdx:null, hintShown:false };
-    if(S.stamps.noura){ return passScreen(el, {msg:"ساعدتِ د. نورة توضح لها حالة طلبها."}); }
+    if(S.stamps.noura){ return passScreen(el, {msg:"ساعدت د. نورة توضح لها حالة طلبها."}); }
     if(S.failed.noura){
       el.appendChild(h("div", {class:"spacer"}));
       el.appendChild(h("div", {class:"result-badge", text:"😕", style:"filter:grayscale(1);"}));
@@ -1206,7 +1224,7 @@
       c.questions.forEach(function(q){ qs.appendChild(h("span", {class:"qchip", text:q})); });
       el.appendChild(qs);
       el.appendChild(h("div", {class:"spacer"}));
-      el.appendChild(h("button", {class:"btn block", text:"ساعدي نورة تتابع طلبها", onclick:function(){ st.step = 1; render(); }}));
+      el.appendChild(h("button", {class:"btn block", text:"ساعد نورة تتابع طلبها", onclick:function(){ st.step = 1; render(); }}));
     } else if(st.step === 1){
       el.appendChild(h("p", {class:"eyebrow", text:"الحل المقترح · حالة الطلب"}));
       var track = h("div", {class:"tracker-wrap"});
@@ -1222,8 +1240,8 @@
       meta.appendChild(h("div", {}, [h("span", {text:"الجهة المسؤولة الآن"}), h("strong", {text:c.owner})]));
       meta.appendChild(h("div", {}, [h("span", {text:"التوقيت المتوقع"}), h("strong", {text:c.eta})]));
       el.appendChild(meta);
-      el.appendChild(h("p", {style:"margin-top:18px;", text:"ادرسي الشاشة كويس... هيجيلك اختبار سريع من 3 أسئلة، محاولة واحدة بس!"}));
-      el.appendChild(h("button", {class:"btn block", text:"ابدئي الاختبار", onclick:function(){ st.step = 2; render(); }}));
+      el.appendChild(h("p", {style:"margin-top:18px;", text:"ادرس الشاشة كويس... هيجيلك اختبار سريع من 3 أسئلة، محاولة واحدة بس!"}));
+      el.appendChild(h("button", {class:"btn block", text:"ابدأ الاختبار", onclick:function(){ st.step = 2; render(); }}));
     } else if(st.step === 2){
       var qi = st.qIndex;
       var quiz = c.quiz[qi];
@@ -1233,7 +1251,7 @@
         if(st.hintShown){
           el.appendChild(h("div", {class:"hint-box", text:"💡 " + quiz.hint}));
         } else if(!st.locked){
-          el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاجة تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
+          el.appendChild(h("button", {class:"hint-btn", text:"💡 محتاج تلميح؟", onclick:function(){ st.hintShown = true; render(); }}));
         }
       }
       var list = h("div", {class:"choice-list"});
@@ -1268,11 +1286,11 @@
   VIEWS.finish = function(el){
     gameHeader(el, "🏆 شهادتك");
     el.appendChild(h("p", {class:"eyebrow", text:"اكتملت الرحلة"}));
-    el.appendChild(h("h2", {class:"title-md", text:"جهّزي شهادتك"}));
+    el.appendChild(h("h2", {class:"title-md", text:"جهّز شهادتك"}));
     el.appendChild(h("p", {class:"center-text", style:"color:var(--gold); font-weight:800; font-family:'Cairo';", text: "🏅 " + stampCount() + "/" + GAMES.length + " أختام  ·  🪙 " + (S.coins||0) + " عملة"}));
 
     if(!S.registered){
-      el.appendChild(h("p", {text:"اكتبي اسمك ليظهر على شهادة إتمام الرحلة:"}));
+      el.appendChild(h("p", {text:"اكتب اسمك ليظهر على شهادة إتمام الرحلة:"}));
       var input = h("input", {type:"text", id:"finalName", placeholder:"اسمك بالكامل"});
       input.value = S.name || "";
       el.appendChild(input);
@@ -1289,8 +1307,8 @@
       var canvas = h("canvas", {id:"certificate", width:"640", height:"400"});
       el.appendChild(canvas);
       drawCertificate(canvas, S.name);
-      el.appendChild(h("button", {class:"btn block", text:"احفظي شهادتك", style:"margin-top:12px;", onclick: saveCertificate}));
-      el.appendChild(h("p", {class:"center-text", style:"margin-top:12px;", text:"تم تسجيل اسمك في لوحة الصدارة تلقائيًا. احفظي الشهادة وأظهريها في نقطة التسجيل للدخول في سحب الجوائز."}));
+      el.appendChild(h("button", {class:"btn block", text:"احفظ شهادتك", style:"margin-top:12px;", onclick: saveCertificate}));
+      el.appendChild(h("p", {class:"center-text", style:"margin-top:12px;", text:"تم تسجيل اسمك في لوحة الصدارة تلقائيًا. احفظ الشهادة وأظهرها في نقطة التسجيل للدخول في سحب الجوائز."}));
       el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"🏆 لوحة الصدارة", onclick:function(){ go("leaderboard"); }}));
       el.appendChild(h("button", {class:"btn secondary block", style:"margin-top:10px;", text:"ابدأ رحلة جديدة", onclick: resetGame}));
     }
@@ -1310,7 +1328,7 @@
         list.innerHTML = "";
         var entries = (data && data.leaderboard) || [];
         if(entries.length === 0){
-          list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش لعب لسه... يمكن تكوني إنتِ الأولى!"}));
+          list.appendChild(h("p", {class:"center-text", style:"color:var(--text-dim);", text:"محدش لعب لسه... يمكن تكون إنت الأول!"}));
           return;
         }
         var meRow = null;
@@ -1326,7 +1344,7 @@
       })
       .catch(function(){
         list.innerHTML = "";
-        list.appendChild(h("p", {class:"center-text", style:"color:var(--warn);", text:"تعذّر تحميل لوحة الصدارة الآن، حاولي تاني بعد شوية."}));
+        list.appendChild(h("p", {class:"center-text", style:"color:var(--warn);", text:"تعذّر تحميل لوحة الصدارة الآن، حاول تاني بعد شوية."}));
       });
   };
 
@@ -1392,6 +1410,13 @@
   }
   document.addEventListener("click", unlockAudioOnce);
   document.addEventListener("touchstart", unlockAudioOnce);
+
+  // ---------- persistent quit button (every screen) ----------
+  document.getElementById("quit-btn").onclick = function(){
+    if(confirm("متأكد إنك عايز تنهي اللعبة؟ هيتم مسح تقدمك الحالي والرجوع للبداية.")){
+      resetGame();
+    }
+  };
 })();
 </script>
 </body>
